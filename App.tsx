@@ -12,6 +12,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import TabNavigator from './pages/screens/TabNavigator';
 import { DashboardScreen } from './pages/screens/DashboardScreen';
 import { ProfileScreen } from './pages/screens/ProfileScreen';
+import WorkflowListScreen from './pages/screens/Workflows/WorkflowList';
+import MaterialListScreen from './pages/screens/Workflows/MainMaterialScreen';
+import AddMaterialScreen from './pages/screens/Workflows/AddMaterialScreen';
+import MaterialDetailScreen from './pages/screens/Workflows/DetailMaterialScreen';
+import ViewAttachmentScreen from './pages/screens/ViewAttachment';
+import JobListScreen from './pages/screens/Jobs/MainJobScreen';
+import AddJobScreen from './pages/screens/Jobs/AddJobScreen';
+import JobDetailScreen from './pages/screens/Jobs/DetailJobScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -53,7 +61,15 @@ const App = () => {
           <Stack.Screen name="Tab" component={TabNavigator} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{animation: 'slide_from_bottom'}} />
-          </Stack.Navigator>
+          <Stack.Screen name="ViewAttachmnet" component={ViewAttachmentScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="WorkflowList" component={WorkflowListScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="MainMaterial" component={MaterialListScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="AddMaterial" component={AddMaterialScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="DetailMaterial" component={MaterialDetailScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="MainJob" component={JobListScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="AddJob" component={AddJobScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="DetailJob" component={JobDetailScreen} options={{animation: 'slide_from_bottom'}} />
+        </Stack.Navigator>
       </NavigationContainer>
     )}
     </SafeAreaView>

@@ -22,7 +22,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({title, checkBackBttn, phoneID, per
             <TouchableOpacity onPress={async () => { navigation.goBack(); }}>
                 <GradientBGIcon
                     name="arrow-back-circle-outline"
-                    color={COLORS.primaryLightGreyHex}
+                    color={COLORS.primaryWhiteHex}
                     size={34}
                 />
             </TouchableOpacity>

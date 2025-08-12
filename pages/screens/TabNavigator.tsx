@@ -3,7 +3,7 @@ import {BackHandler, StyleSheet} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {BlurView} from '@react-native-community/blur';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { COLORS } from '../../themes/theme';
+import { COLORS, HEADERBACKGROUNDCOLORCODE } from '../../themes/theme';
 import { TabCSS } from '../../themes/CSS';
 import { DashboardScreen } from './DashboardScreen';
 import { ProfileScreen } from './ProfileScreen';
@@ -33,7 +33,7 @@ const TabNavigator = () => {
                         name="home"
                         size={28}
                         color={
-                            focused ? COLORS.primaryWhiteHex : COLORS.secondaryLightGreyHex
+                            focused ? HEADERBACKGROUNDCOLORCODE : COLORS.secondaryLightGreyHex
                         }
                     />
                 ), }}>
@@ -46,7 +46,7 @@ const TabNavigator = () => {
                         name="person"
                         size={28}
                         color={
-                            focused ? COLORS.primaryWhiteHex : COLORS.secondaryLightGreyHex
+                            focused ? HEADERBACKGROUNDCOLORCODE : COLORS.secondaryLightGreyHex
                         }
                     />
                 ), }}>

@@ -561,17 +561,17 @@ export const TabCSS = StyleSheet.create({
     tabBarStyle: {
         height: Platform.OS === 'android' ? 45 : 80,
         position: 'absolute',
-        backgroundColor: HEADERBACKGROUNDCOLORCODE,
+        backgroundColor: COLORS.primaryWhiteHex,
         borderTopWidth: 0,
         elevation: 0,
         borderTopColor: 'transparent',
     },
     BlurViewStyles: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
+        // position: 'absolute',
+        // top: 0,
+        // bottom: 0,
+        // left: 0,
+        // right: 0,
     },
 });
 

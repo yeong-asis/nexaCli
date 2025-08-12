@@ -11,8 +11,8 @@ export const UserPageList = [
                 // source={colorScheme === 'light' ? require('../assets/DashboardLight.png') : require('../assets/DashboardDark.png')} 
             />
         ),
-        title: "Task",
-        navigate: "/task/tasklist",
+        title: "Job",
+        navigate: "MainJob",
     },
     {
         id: 2,
@@ -25,7 +25,7 @@ export const UserPageList = [
             />
         ),
         title: "Workflow",
-        navigate: "/workflowlist",
+        navigate: "WorkflowList",
     },
     // {
     //     id: 3,

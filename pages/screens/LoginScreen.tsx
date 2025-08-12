@@ -39,7 +39,7 @@ const LoginScreen = ({navigation}: any) => {
         if (!emtpy) {
             try {
                 // await axios.get(
-                //     `${"192.168.0.0"}/api/dashboard/login?email=${username}&password=${password}`
+                //     `${IPAddress}/api/dashboard/login?email=${username}&password=${password}`
                 // ).then(async response => {
                     
                 //     const responseData=response.data;

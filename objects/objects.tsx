@@ -9,10 +9,10 @@ export const TaskMenuItems = [
 ];
 
 export const WorkflowMenuItems = [
-    { id: 1, title: "Material Request", navigate: "/workflow/materialsite", type: "material" },
-    { id: 2, title: "Production Trigger", navigate: "/workflow/productionsite", type: "production" },
-    { id: 3, title: "Purchase Request", navigate: "/workflow/purchasesite", type: "purchase" },
-    { id: 4, title: "Payment Request", navigate: "/workflow/paymentsite", type: "payment" },
+    // { id: 1, title: "Material Request", navigate: "/workflow/materialsite", type: "material" },
+    // { id: 2, title: "Production Trigger", navigate: "/workflow/productionsite", type: "production" },
+    // { id: 3, title: "Purchase Request", navigate: "/workflow/purchasesite", type: "purchase" },
+    // { id: 4, title: "Payment Request", navigate: "/workflow/paymentsite", type: "payment" },
     { id: 5, title: "Stock Movement", navigate: "/workflow/stocksite", type: "stock" },
 ];
 
@@ -49,22 +49,25 @@ export type SelectionItem = {
     name: string;
 };
 
-export interface TaskProps {
+export interface JobProps {
     pkkey: number,
     code: string,
     title: string,
-    status: string,
     type: string,
-    // Requester: string,
-    // Category: string,
-    // Customer: string,
-    // Supplier: string,
-    // MRQ: string,
-    // Project: string,
-    // PO: string,
-    // POType: string,
-    // DueDate: string,
-    // Remark: string
+    report: string,
+    status: string,
+    startDate: string,
+    assignTo: string,
+    priority: string,
+    description: string,
+}
+
+export interface DailyTaskProps {
+    pkkey: number,
+    code: string,
+    title: string,
+    type: string,
+    report: string,
 }
 
 export interface WorkflowProps {
