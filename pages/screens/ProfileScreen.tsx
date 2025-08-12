@@ -94,7 +94,7 @@ export const ProfileScreen = ({navigation}: any) => {
                                 <TouchableOpacity style={ProfileCSS.ButtonContainer} onPress={async () => {}}>
                                     <View style={ProfileCSS.iconCircle}>
                                         {/* <GradientBGIcon name={"info"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
-                                        <Octicons name="eye" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
+                                        <Octicons name="info" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
                                     </View>
                                     <Text style={ProfileCSS.ButtonTextCSS}> {"More Info"}</Text>
                                 </TouchableOpacity>
@@ -106,7 +106,7 @@ export const ProfileScreen = ({navigation}: any) => {
                                 <TouchableOpacity style={ProfileCSS.ButtonContainer} onPress={async () => {}}>
                                     <View style={ProfileCSS.iconCircle}>
                                         {/* <GradientBGIcon name={"settings"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
-                                        <Octicons name="eye" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
+                                        <Octicons name="gear" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
                                     </View>
                                     <Text style={ProfileCSS.ButtonTextCSS}> {"Settings"}</Text>
                                 </TouchableOpacity>
@@ -139,7 +139,7 @@ export const ProfileScreen = ({navigation}: any) => {
                                         // backgroundColor: COLORS.primaryRedHex
                                     }]}>
                                         {/* <GradientBGIcon name={"log-out"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
-                                        <Octicons name="eye" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
+                                        <Octicons name="sign-out" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
                                     </View>
                                     <Text style={[ProfileCSS.ButtonTextCSS, {color: COLORS.primaryDarkGreyHex}]}> {"Logout"}</Text>
                                 </TouchableOpacity>
