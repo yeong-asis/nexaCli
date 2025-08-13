@@ -25,7 +25,7 @@ const JobListCard: React.FC<JobProps> = ({
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
                     <Text style={[styles.TextStatus, {
-                        backgroundColor: type=="Approval" ? COLORS.primaryGreenHex : status=="Accepted" ? COLORS.primaryGreenHex : COLORS.primaryRedHex,
+                        backgroundColor: type=="Completed" ? COLORS.primaryGreenHex : status=="Processing" ? COLORS.primaryOrangeHex : COLORS.secondaryLightGreyHex,
                     }]}>
                         {type=="Approval" ? "Approved" : status}
                     </Text>

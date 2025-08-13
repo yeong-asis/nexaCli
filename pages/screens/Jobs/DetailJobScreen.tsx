@@ -6,29 +6,28 @@ import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
+import { useRoute } from '@react-navigation/native';
+import { sampleJobs } from '../../../objects/SampleJsonData';
+import { AttachmentsProps } from '../../../objects/objects';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const JobDetailScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
-    // const [selectedType, setSelectedType] = useState("Pending");
+    const route = useRoute();
+    const { key, code } = route.params as any;
 
+    const [customer, setCustomer] = useState("");
+    const [site, setSite] = useState("");
+    const [address, setAddress] = useState("");
     const [title, setTitle] = useState("");
-    const [titleHelperText, settitleHelperText] = useState(false);
-
-    const [project, setProject] = useState("");
-    const [projectMenuVisible, setProjectMenuVisible] = useState(false);
-    const projectOptions = ['Salesmate', 'ActiveCampaign', 'Insightly'];
-
     const [startDate, setStartDate] = useState(new Date().toDateString());
-    const [startDateTouched, setStartDateTouched] = useState(false);
-
-    const [priority, setPriority] = useState("");
-    const [assignedTo, setAssignedTo] = useState("");
-
-    const [selectedPersons, setSelectedPersons] = useState<string[]>([]);
-    const [showPersonPicker, setShowPersonPicker] = useState(false);
-    const availablePersons = ["Alice", "Bob", "Charlie", "David"];
-
     const [description, setDescription] = useState("");
+
+    const [issue, setIssue] = useState("");
+    const [reason, setReason] = useState("");
+    const [action, setAction] = useState("");
+    const [attachments, setAttachments] = useState<any[]>([]);
+    // const [currentAttachment, setCurrentAttachment] = useState<AttachmentsProps[]>([]);
 
     // IOS Picker controls
     const [showIOSStartPicker, setShowIOSStartPicker] = useState(false)
@@ -36,35 +35,60 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
 
     useEffect(() => {
         (async () => {
-            
+            await fetchedDataAPI();
         })();
     }, []);
 
-    const showAndroidDateTimePicker = (type: any) => {
+    const showAndroidDateTimePicker = (type: string) => {
+        // Step 1: Pick date
         DateTimePickerAndroid.open({
-            value: new Date(startDate),
-            // value: type == "start" ? new Date(startDate) : new Date(endDate),
+            value: new Date(),
             onChange: (_event, date) => {
-                if (!date) return; // user cancelled
-                // store back in the same `toDateString()` format
-                const formatted = date.toDateString();
-                if (type === "start") {
-                    console.log("Picked new startDate:", formatted);
-                    setStartDate(formatted);
-                } else {
-                    console.log("Picked new endDate:", formatted);
-                }
+                if (!date) return;
+    
+                // Step 2: Pick time
+                DateTimePickerAndroid.open({
+                    value: date,
+                    mode: "time",
+                    is24Hour: true,
+                    display: 'spinner',
+                    onChange: (_event2, time) => {
+                        if (!time) return;
+                        const combined = new Date(date);
+                        combined.setHours(time.getHours());
+                        combined.setMinutes(time.getMinutes());
+                        setStartDate(combined.toLocaleString()); // full date + time
+                    },
+                });
             },
             mode: "date"
         });
+    };
+
+    const fetchedDataAPI = async() => {
+        setProcessData(true);
+        const job = sampleJobs.find(j => j.pkkey === key);
+        if (job) {
+            setCustomer(job.customerName);
+            setSite(job.siteName);
+            setAddress(job.address);
+            setTitle(job.title);
+            setDescription(job.description);
+            setStartDate(job.startDate);
+        }
+        setProcessData(false);
     }
+
+    const pickFiles = async () => {
+        
+    };
 
     return (
         <View style={defaultCSS.ScreenContainer}>
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
             
             <View style={{ flex: 1 }}>
-                <HeaderBar title={`Add New Job: `} checkBackBttn={true} />
+                <HeaderBar title={`${code}`} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
 
                 <KeyboardAvoidingView
@@ -86,137 +110,33 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                             }]}>
                                 <View style={{flexDirection: "column", marginTop: 10}}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Title:</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                    </View>
-                                    <TextInput
-                                        label=""
-                                        mode="outlined"
-                                        value={title}
-                                        // placeholder="Title"
-                                        onChangeText={setTitle}
-                                        returnKeyType="next"
-                                        // onSubmitEditing={() => projectRef.current?.focus()}
-                                    />
-                                    {titleHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Title can't be empty</Text>}
-                                </View>
-
-                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
-                                    <View style={{ flex: 1, marginRight: 10 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Job Type:</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <TextInput
-                                            label=""
-                                            mode="outlined"
-                                            value={title}
-                                            onChangeText={setTitle}
-                                            returnKeyType="next"
-                                            // onSubmitEditing={() => projectRef.current?.focus()}
-                                        />
-                                        {titleHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Title can't be empty</Text>}
-                                    </View>
-
-                                    <View style={{ flex: 1 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Report:</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <Menu
-                                            visible={projectMenuVisible}
-                                            onDismiss={() => setProjectMenuVisible(false)}
-                                            anchor={
-                                            <TouchableOpacity onPress={() => setProjectMenuVisible(true)}>
-                                                <TextInput
-                                                label=""
-                                                mode="outlined"
-                                                value={project}
-                                                editable={false}
-                                                pointerEvents="none"
-                                                right={<TextInput.Icon icon="menu-down" onPress={() => setProjectMenuVisible(true)} />}
-                                                />
-                                            </TouchableOpacity>
-                                            }
-                                        >
-                                            {projectOptions.map((option) => (
-                                            <Menu.Item
-                                                key={option}
-                                                onPress={() => {
-                                                    setProject(option);
-                                                    setProjectMenuVisible(false);
-                                                }}
-                                                title={option}
-                                            />
-                                            ))}
-                                        </Menu>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Customer: {customer}</Text>
                                     </View>
                                 </View>
-
-                                {/* Start Date */}
                                 <View style={{flexDirection: "column", marginTop: 10}}>
-                                    <View style={AddItemScreenCSS.labelRow}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Start Date:</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Site: {site}</Text>
                                     </View>
-                                    
-                                    <TouchableOpacity 
-                                        onPress={() => {Platform.OS === "android" ? showAndroidDateTimePicker("start") : setShowIOSStartPicker(true)}}
-                                    >
-                                        <TextInput
-                                            label=""
-                                            value={startDate}
-                                            mode="outlined"
-                                            editable={false}
-                                            placeholder="Tap to select start date"
-                                            right={
-                                                <TextInput.Icon icon="calendar" onPress={() => {
-                                                    Platform.OS === "android" ? showAndroidDateTimePicker("start") : setShowIOSStartPicker(true)
-                                                }} />
-                                            }
-                                            error={startDateTouched && !startDate}
-                                        />
-                                    </TouchableOpacity>
-                                    
-                                    {startDateTouched && !startDate && (
-                                        <Text style={AddItemScreenCSS.errorText}>Start Date is required</Text>
-                                    )}
                                 </View>
-
-                                {/* Assign to and Priority in one row */}
-                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
-                                    {/* Assign Input */}
-                                    <View style={{ flex: 1, marginRight: 10 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Assigned To:</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <TextInput
-                                            label=""
-                                            mode="outlined"
-                                            value={assignedTo}
-                                            onChangeText={setAssignedTo}
-                                        />
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Address: {address}</Text>
                                     </View>
-
-                                    {/* Priority Input */}
-                                    <View style={{ flex: 1 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Priority:</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <TextInput
-                                            label=""
-                                            mode="outlined"
-                                            value={priority}
-                                            onChangeText={setPriority}
-                                        />
+                                </View>
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Start Date & Time: {startDate}</Text>
+                                    </View>
+                                </View>
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Desc: {description}</Text>
                                     </View>
                                 </View>
 
                                 <View style={{ marginTop: 10 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Description</Text>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Issue</Text>
                                         <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                     </View>
                                     <TextInput
@@ -224,16 +144,106 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                         mode="outlined"
                                         multiline
                                         numberOfLines={5}
-                                        value={description}
-                                        onChangeText={setDescription}
+                                        value={issue}
+                                        onChangeText={setIssue}
                                         style={{ textAlignVertical: 'top', height: 100 }} // Ensures text starts from top-left
-                                        placeholder="Enter task description here"
+                                        placeholder="Enter issue here"
                                     />
                                 </View>
 
+                                <View style={{ marginTop: 10 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Reason</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        multiline
+                                        numberOfLines={5}
+                                        value={reason}
+                                        onChangeText={setReason}
+                                        style={{ textAlignVertical: 'top', height: 100 }} // Ensures text starts from top-left
+                                        placeholder="Enter reason here"
+                                    />
+                                </View>
 
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Done")}}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Create </Text>
+                                <View style={{ marginTop: 10 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Action</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        multiline
+                                        numberOfLines={5}
+                                        value={action}
+                                        onChangeText={setAction}
+                                        style={{ textAlignVertical: 'top', height: 100 }} // Ensures text starts from top-left
+                                        placeholder="Enter action here"
+                                    />
+                                </View>
+
+                                {/* ── Attach Files Section ──────────────────────────────────────── */}
+                                <View style={{ marginTop: 16 }}>
+                                    {/* (a) Button to open document picker */}
+                                    <TouchableOpacity
+                                        onPress={()=>pickFiles()}
+                                        // onPress={pickFiles}
+                                        style={{
+                                        paddingVertical: 12,
+                                        paddingHorizontal: 16,
+                                        backgroundColor: COLORS.primaryLightGreyHex,
+                                        borderRadius: 6,
+                                        alignSelf: 'flex-start',
+                                        }}
+                                    >
+                                        <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
+                                    </TouchableOpacity>
+
+                                    {/* (b) Show a list of picked files, each with a “Remove” control */}
+                                    {attachments.map((file, idx) => (
+                                        <View
+                                        key={idx}
+                                        style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            marginTop: 8,
+                                            padding: 8,
+                                            backgroundColor: '#F5F5F5',
+                                            borderRadius: 4,
+                                        }}
+                                        >
+                                        {/* Show the file name (truncate if too long) */}
+                                        <Text
+                                            style={{ flex: 1, fontSize: 14 }}
+                                            numberOfLines={1}
+                                            ellipsizeMode="middle"
+                                        >
+                                            {file.name ?? 'Unknown file'}
+                                        </Text>
+
+                                        {/* “Remove” button to drop this attachment */}
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                            setAttachments(prev => prev.filter((_, i) => i !== idx));
+                                            }}
+                                            style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+                                        >
+                                            <Text style={{ color: 'red', fontSize: 14 }}>Remove</Text>
+                                        </TouchableOpacity>
+                                        </View>
+                                    ))}
+                                </View>
+
+                                
+
+                                <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.secondaryLightGreyHex}]} onPress={() => {console.log("Pause")}}>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Pause </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryOrangeHex}]} onPress={() => {console.log("Done")}}>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Done </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -252,7 +262,7 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                             />
                             <DateTimePickerModal
                                 isVisible={showIOSEndPicker}
-                                mode="date"
+                                mode="datetime"
                                 onConfirm={(date) => {
                                     const formatted = date.toDateString();
                                     setStartDate(formatted);
@@ -263,96 +273,6 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                             />
                             </>
                         )}
-                        <Modal
-                            visible={showPersonPicker}
-                            animationType="slide"
-                            transparent={true}
-                            onRequestClose={() => setShowPersonPicker(false)}
-                        >
-                            <TouchableWithoutFeedback onPress={() => setShowPersonPicker(false)}>
-                            <View style={{
-                                flex: 1,
-                                justifyContent: 'center',
-                                backgroundColor: 'rgba(0,0,0,0.5)',
-                                padding: 20
-                            }}>
-                                <TouchableWithoutFeedback>
-                                <View style={{
-                                    backgroundColor: 'white',
-                                    borderRadius: 10,
-                                    padding: 20,
-                                }}>
-                                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10 }}>Select Responsible Person</Text>
-                                    <ScrollView style={{ maxHeight: 200 }}>
-                                        <TouchableOpacity
-                                            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}
-                                            onPress={() => {
-                                                const allSelected = selectedPersons.length === availablePersons.length;
-                                                setSelectedPersons(allSelected ? [] : [...availablePersons]);
-                                            }}
-                                            >
-                                            <View style={AddItemScreenCSS.CheckboxCSS}>
-                                                <Checkbox
-                                                    status={
-                                                    selectedPersons.length === availablePersons.length
-                                                        ? 'checked'
-                                                        : selectedPersons.length > 0
-                                                        ? 'indeterminate'
-                                                        : 'unchecked'
-                                                    }
-                                                    onPress={() => {
-                                                    const allSelected = selectedPersons.length === availablePersons.length;
-                                                    setSelectedPersons(allSelected ? [] : [...availablePersons]);
-                                                    }}
-                                                />
-                                            </View>
-                                            <Text style={{ marginLeft: 8 }}>Select All</Text>
-                                        </TouchableOpacity>
-                                        {availablePersons.map((person) => (
-                                            <TouchableOpacity
-                                                key={person}
-                                                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}
-                                                onPress={() => {
-                                                    if (selectedPersons.includes(person)) {
-                                                        setSelectedPersons(prev => prev.filter(p => p !== person));
-                                                    } else {
-                                                        setSelectedPersons(prev => [...prev, person]);
-                                                    }
-                                            }}>
-                                                <View style={AddItemScreenCSS.CheckboxCSS}>
-                                                    <Checkbox
-                                                        status={selectedPersons.includes(person) ? 'checked' : 'unchecked'}
-                                                        onPress={() => {
-                                                            if (selectedPersons.includes(person)) {
-                                                            setSelectedPersons(prev => prev.filter(p => p !== person));
-                                                            } else {
-                                                            setSelectedPersons(prev => [...prev, person]);
-                                                            }
-                                                        }}
-                                                    />
-                                                </View>
-                                                <Text style={{ marginLeft: 8 }}>{person}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-
-                                    <TouchableOpacity
-                                        style={{
-                                            marginTop: 20,
-                                            backgroundColor: COLORS.primaryDarkGreyHex,
-                                            padding: 10,
-                                            borderRadius: 8,
-                                            alignItems: 'center'
-                                        }}
-                                        onPress={() => setShowPersonPicker(false)}
-                                    >
-                                        <Text style={{ color: 'white' }}>Done</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                            </TouchableWithoutFeedback>
-                        </Modal>
                     </ScrollView>
                 </KeyboardAvoidingView>
             </View>

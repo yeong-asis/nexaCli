@@ -7,10 +7,11 @@ import { Snackbar, TextInput } from 'react-native-paper';
 import { COLORS } from '../../themes/theme';
 import { LoginManagementCSS, ButtonCSS, defaultCSS, FooterCSS } from '../../themes/CSS';
 import KeyboardAvoidWrapper from '../functions/KeyboardAvoidWrapper';
+import { IPAddress } from '../../objects/objects';
 
 const LoginScreen = ({navigation}: any) => {
-    const [userName, setUserName] = useState('');
-    const [password, setPassword] = useState('');
+    const [userName, setUserName] = useState('jasonchew@asis-technologies.com');
+    const [password, setPassword] = useState('Asis!234');
     const [ishide, setishide] = useState(true);
     const inputRef = React.createRef<TextInputs>();
     const [usernameHelperText, setusernameHelperText] = useState(false);
@@ -38,40 +39,39 @@ const LoginScreen = ({navigation}: any) => {
 
         if (!emtpy) {
             try {
-                // await axios.get(
-                //     `${IPAddress}/api/dashboard/login?email=${username}&password=${password}`
-                // ).then(async response => {
+                await axios.get(
+                    `${IPAddress}/api/dashboard/login?email=${username}&password=${password}`
+                ).then(async response => {
                     
-                //     const responseData=response.data;
+                    const responseData=response.data;
 
-                //     // console.log(responseData.isSuccess);
-                //     if(responseData.isSuccess==true) {
-                //         setSnackbarMessage('Success');
-                //         setSnackbarVisible(true);
+                    // console.log(responseData.isSuccess);
+                    if(responseData.isSuccess==true) {
+                        setSnackbarMessage('Success');
+                        setSnackbarVisible(true);
 
-                //         // console.log(responseData.result[0].pkkey);
-                //         await AsyncStorage.setItem('UserID', responseData.result[0].pkkey);
-                //         await AsyncStorage.setItem('Department', responseData.result[0].department);
-                //         await AsyncStorage.setItem('FullName', responseData.result[0].fullName);
-                //         await AsyncStorage.setItem('Email', responseData.result[0].email);
-                //         // navigation.navigate("Tab", { screen: 'Home'});
+                        // console.log(responseData.result[0].pkkey);
+                        await AsyncStorage.setItem('UserID', responseData.result[0].pkkey);
+                        await AsyncStorage.setItem('Department', responseData.result[0].department);
+                        await AsyncStorage.setItem('FullName', responseData.result[0].fullName);
+                        await AsyncStorage.setItem('Email', responseData.result[0].email);
+                        navigation.navigate("Tab", { screen: 'Dashboard'});
 
-                //     }else{
-                //         setSnackbarMessage('Login failed');
-                //         setSnackbarVisible(true);
-                //     }
-                //     // console.log(responseData.result);
-                // });
+                    }else{
+                        setSnackbarMessage('Login failed');
+                        setSnackbarVisible(true);
+                    }
+                    // console.log(responseData.result);
+                });
 
-                await AsyncStorage.setItem('UserID', "2");
-                await AsyncStorage.setItem('UserIC', "990524015103");
-                await AsyncStorage.setItem('UserType', "NRIC");
-                await AsyncStorage.setItem('UserPosition', "Driver");
-                await AsyncStorage.setItem('UserLevel', "1");
-                await AsyncStorage.setItem('FullName', "WONG FUH YEONG");
-                await AsyncStorage.setItem('Email', "yeongwf@asis-technologies.com");
-                navigation.navigate("Tab", { screen: 'Dashboard'});
-                // router.replace("/dashboard" as any);
+                // await AsyncStorage.setItem('UserID', "2");
+                // await AsyncStorage.setItem('UserIC', "990524015103");
+                // await AsyncStorage.setItem('UserType', "NRIC");
+                // await AsyncStorage.setItem('UserPosition', "Driver");
+                // await AsyncStorage.setItem('UserLevel', "1");
+                // await AsyncStorage.setItem('FullName', "WONG FUH YEONG");
+                // await AsyncStorage.setItem('Email', "yeongwf@asis-technologies.com");
+                // navigation.navigate("Tab", { screen: 'Dashboard'});
 
             }catch (error: any) {
                 console.log("Error: "+error);

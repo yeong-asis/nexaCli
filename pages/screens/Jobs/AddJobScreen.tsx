@@ -11,6 +11,15 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
     // const [selectedType, setSelectedType] = useState("Pending");
 
+    const [customer, setCustomer] = useState("");
+    const [customerHelperText, setCustomerHelperText] = useState(false);
+
+    const [site, setSite] = useState("");
+    const [siteHelperText, setSiteHelperText] = useState(false);
+
+    const [address, setAddress] = useState("");
+    const [addressHelperText, setAddressHelperText] = useState(false);
+
     const [title, setTitle] = useState("");
     const [titleHelperText, settitleHelperText] = useState(false);
 
@@ -18,7 +27,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [projectMenuVisible, setProjectMenuVisible] = useState(false);
     const projectOptions = ['Salesmate', 'ActiveCampaign', 'Insightly'];
 
-    const [startDate, setStartDate] = useState(new Date().toDateString());
+    const [startDate, setStartDate] = useState(new Date().toLocaleString());
     const [startDateTouched, setStartDateTouched] = useState(false);
 
     const [priority, setPriority] = useState("");
@@ -40,24 +49,32 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
         })();
     }, []);
 
-    const showAndroidDateTimePicker = (type: any) => {
+    const showAndroidDateTimePicker = (type: string) => {
+        // Step 1: Pick date
         DateTimePickerAndroid.open({
-            value: new Date(startDate),
-            // value: type == "start" ? new Date(startDate) : new Date(endDate),
+            value: new Date(),
             onChange: (_event, date) => {
-                if (!date) return; // user cancelled
-                // store back in the same `toDateString()` format
-                const formatted = date.toDateString();
-                if (type === "start") {
-                    console.log("Picked new startDate:", formatted);
-                    setStartDate(formatted);
-                } else {
-                    console.log("Picked new endDate:", formatted);
-                }
+                if (!date) return;
+
+                // Step 2: Pick time
+                DateTimePickerAndroid.open({
+                    value: date,
+                    mode: "time",
+                    is24Hour: true,
+                    display: 'spinner',
+                    onChange: (_event2, time) => {
+                        if (!time) return;
+                        const combined = new Date(date);
+                        combined.setHours(time.getHours());
+                        combined.setMinutes(time.getMinutes());
+                        setStartDate(combined.toLocaleString()); // full date + time
+                    },
+                });
             },
             mode: "date"
         });
-    }
+    };
+
 
     return (
         <View style={defaultCSS.ScreenContainer}>
@@ -84,6 +101,54 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                 borderRadius: 16,
                                 overflow: 'hidden',
                             }]}>
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Customer:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        value={customer}
+                                        // placeholder="Title"
+                                        onChangeText={setCustomer}
+                                        returnKeyType="next"
+                                        // onSubmitEditing={() => projectRef.current?.focus()}
+                                    />
+                                    {customerHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Customer can't be empty</Text>}
+                                </View>
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Site:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        value={site}
+                                        // placeholder="Title"
+                                        onChangeText={setSite}
+                                        returnKeyType="next"
+                                        // onSubmitEditing={() => projectRef.current?.focus()}
+                                    />
+                                    {siteHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Site can't be empty</Text>}
+                                </View>
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Address:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        value={address}
+                                        // placeholder="Title"
+                                        onChangeText={setAddress}
+                                        returnKeyType="next"
+                                        // onSubmitEditing={() => projectRef.current?.focus()}
+                                    />
+                                    {addressHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Address can't be empty</Text>}
+                                </View>
                                 <View style={{flexDirection: "column", marginTop: 10}}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Title:</Text>
@@ -127,14 +192,16 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                             visible={projectMenuVisible}
                                             onDismiss={() => setProjectMenuVisible(false)}
                                             anchor={
-                                            <TouchableOpacity onPress={() => setProjectMenuVisible(true)}>
+                                            <TouchableOpacity onPress={() => console.log("AAA")}>
+                                            {/* <TouchableOpacity onPress={() => setProjectMenuVisible(true)}> */}
                                                 <TextInput
                                                 label=""
                                                 mode="outlined"
                                                 value={project}
                                                 editable={false}
                                                 pointerEvents="none"
-                                                right={<TextInput.Icon icon="menu-down" onPress={() => setProjectMenuVisible(true)} />}
+                                                right={<TextInput.Icon icon="menu-down" onPress={() => console.log("AAA")} />}
+                                                // right={<TextInput.Icon icon="menu-down" onPress={() => setProjectMenuVisible(true)} />}
                                                 />
                                             </TouchableOpacity>
                                             }
@@ -143,8 +210,9 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                             <Menu.Item
                                                 key={option}
                                                 onPress={() => {
-                                                    setProject(option);
-                                                    setProjectMenuVisible(false);
+                                                    console.log("AAA")
+                                                    // setProject(option);
+                                                    // setProjectMenuVisible(false);
                                                 }}
                                                 title={option}
                                             />
@@ -241,7 +309,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                             <>
                             <DateTimePickerModal
                                 isVisible={showIOSStartPicker}
-                                mode="date"
+                                mode="datetime"
                                 onConfirm={(date) => {
                                     const formatted = date.toDateString();
                                     setStartDate(formatted);

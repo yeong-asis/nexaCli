@@ -10,6 +10,8 @@ import HeaderBar from '../../functions/HeaderBar';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import EmptyListContainer from '../../functions/EmptyListContainer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { sampleJobs } from '../../../objects/SampleJsonData';
+import Snackbar from 'react-native-snackbar';
 
 const JobListScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -39,10 +41,14 @@ const JobListScreen = ({ navigation }: { navigation: any }) => {
         try {
             await axios.get( runURL ).then(async response => {
                 
-                const responseData=response.data;
-                
-                // const responseData = SampleTask.taskList;
-                // console.log(responseData)
+                const responseData = sampleJobs.filter(job => {
+                    if (requestStatus === "Approval") {
+                        return job.status.toLowerCase() === "completed";
+                    } else {
+                        return job.status.toLowerCase() !== "completed";
+                    }
+                });
+                // const responseData=response.data;
 
                 const formattedMessages = responseData.map((item: any) => {
                     return {
@@ -55,6 +61,12 @@ const JobListScreen = ({ navigation }: { navigation: any }) => {
                         assignTo: item.assignTo,
                         priority: item.priority,
                         description: item.description,
+                        customerID: item.customerID,
+                        customerName: item.customerName,
+                        siteID: item.siteID,
+                        siteName: item.siteName,
+                        address: item.address,
+                        type: item.tyoe
                     };
                 });
 
@@ -89,19 +101,27 @@ const JobListScreen = ({ navigation }: { navigation: any }) => {
     const showMessageCard = ({ item }: { item: JobProps }) => {
         return (
             <TouchableOpacity onPress={() => {
-                console.log(item.code)
+                navigation.navigate('DetailJob', {
+                    key: item.pkkey, 
+                    code: item.code,
+                });
             }} >
                 <JobListCard 
                     pkkey={item.pkkey}
                     title={item.title}
                     code={item.code}
                     status={item.status}
-                    type={selectedCategory} 
-                    report={''} 
-                    startDate={''} 
-                    assignTo={''} 
-                    priority={''} 
-                    description={''}/>
+                    type={selectedCategory}
+                    report={item.report}
+                    startDate={item.startDate}
+                    assignTo={item.assignTo}
+                    priority={item.priority}
+                    description={item.description} 
+                    customerID={item.customerID} 
+                    customerName={item.customerName} 
+                    siteID={item.siteID} 
+                    siteName={item.siteName} 
+                    address={item.address}/>
             </TouchableOpacity>
         );
     };
@@ -183,7 +203,7 @@ const JobListScreen = ({ navigation }: { navigation: any }) => {
                             </View>
                         ) : (
                             <View style={{alignItems:"center", justifyContent: "center", flex: 0.9}}>
-                                <EmptyListContainer title={'No Task now.'} />
+                                <EmptyListContainer title={'No Job now.'} />
                             </View>
                         )
                     )
