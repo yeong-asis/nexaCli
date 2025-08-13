@@ -1,6 +1,6 @@
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import React, { useEffect, useRef, useState } from 'react';
+import { Button, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
@@ -8,8 +8,10 @@ import { BACKGROUNDCOLORCODE, COLORS } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import { useRoute } from '@react-navigation/native';
 import { sampleJobs } from '../../../objects/SampleJsonData';
-import { AttachmentsProps } from '../../../objects/objects';
+import { launchCamera, launchImageLibrary, Asset, ImageLibraryOptions } from 'react-native-image-picker';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import SignatureCanvas, { SignatureViewRef } from 'react-native-signature-canvas';
+import Snackbar from 'react-native-snackbar';
 
 const JobDetailScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -27,7 +29,12 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
     const [reason, setReason] = useState("");
     const [action, setAction] = useState("");
     const [attachments, setAttachments] = useState<any[]>([]);
-    // const [currentAttachment, setCurrentAttachment] = useState<AttachmentsProps[]>([]);
+    const [scrollEnabled, setScrollEnabled] = useState(true);
+    const refTechnician = useRef<SignatureViewRef>(null);
+    const [signTechnician, setSignTechnician] = useState(null);
+    const refCustomer = useRef<SignatureViewRef>(null);
+    const [signCustomer, setSignCutomer] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     // IOS Picker controls
     const [showIOSStartPicker, setShowIOSStartPicker] = useState(false)
@@ -66,22 +73,75 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
     };
 
     const fetchedDataAPI = async() => {
-        setProcessData(true);
-        const job = sampleJobs.find(j => j.pkkey === key);
-        if (job) {
-            setCustomer(job.customerName);
-            setSite(job.siteName);
-            setAddress(job.address);
-            setTitle(job.title);
-            setDescription(job.description);
-            setStartDate(job.startDate);
+            setProcessData(true);
+            const job = sampleJobs.find(j => j.pkkey === key);
+            if (job) {
+                setCustomer(job.customerName);
+                setSite(job.siteName);
+                setAddress(job.address);
+                setTitle(job.title);
+                setDescription(job.description);
+                setStartDate(job.startDate);
+            }
+            setProcessData(false);
         }
-        setProcessData(false);
-    }
 
     const pickFiles = async () => {
+        try {
+            const options: ImageLibraryOptions = {
+                mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
+                selectionLimit: 0,  // 0 means unlimited selection
+                includeBase64: false, // Optional: if you need base64 data
+            };
+
+            launchImageLibrary(options, (response) => {
+                if (response.didCancel) {
+                    console.log('User cancelled picker');
+                } else if (response.errorCode) {
+                    console.error('ImagePicker Error: ', response.errorMessage);
+                } else {
+                    const picked: Asset[] = response.assets ?? [];
+                    setAttachments((prev) => [...prev, ...picked]);
+                }
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleSignature = (signature: any, type: any) => {
+        if(type=="technician"){
+            console.log('Signature captured:', signature);
+            setSignTechnician(signature);
+            Snackbar.show({
+                text: "Technician signature saved",
+                duration: Snackbar.LENGTH_SHORT,
+            });
+        }else{
+            console.log('Signature captured:', signature);
+            setSignCutomer(signature);
+            Snackbar.show({
+                text: "Customer signature saved",
+                duration: Snackbar.LENGTH_SHORT,
+            });
+        }
         
     };
+
+    const handleReSign = (type: any) => {
+        if(type=="technician"){
+            setSignTechnician(null);
+        }else {
+            setSignCutomer(null);
+        }
+    };
+
+    const SubmitToAPI = async () => {
+        Snackbar.show({
+            text: "Submit",
+            duration: Snackbar.LENGTH_LONG,
+        });
+    }
 
     return (
         <View style={defaultCSS.ScreenContainer}>
@@ -100,6 +160,7 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                         contentContainerStyle={{
                             paddingVertical: 10,
                         }}
+                        scrollEnabled={scrollEnabled}
                     >
                         <View style={[LoginManagementCSS.widthAndAdjustment, LoginManagementCSS.CardShadow]}>
                             <View style={[{
@@ -202,42 +263,128 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
                                     </TouchableOpacity>
 
-                                    {/* (b) Show a list of picked files, each with a “Remove” control */}
                                     {attachments.map((file, idx) => (
-                                        <View
-                                        key={idx}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            marginTop: 8,
-                                            padding: 8,
-                                            backgroundColor: '#F5F5F5',
-                                            borderRadius: 4,
-                                        }}
-                                        >
-                                        {/* Show the file name (truncate if too long) */}
-                                        <Text
-                                            style={{ flex: 1, fontSize: 14 }}
-                                            numberOfLines={1}
-                                            ellipsizeMode="middle"
-                                        >
-                                            {file.name ?? 'Unknown file'}
-                                        </Text>
+                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                        {file.type?.startsWith('image/') && (
+                                            <Image
+                                                source={{ uri: file.uri }}
+                                                style={{ width: 50, height: 50, marginRight: 8, borderRadius: 4 }}
+                                            />
+                                        )}
 
-                                        {/* “Remove” button to drop this attachment */}
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                            setAttachments(prev => prev.filter((_, i) => i !== idx));
-                                            }}
-                                            style={{ paddingHorizontal: 8, paddingVertical: 4 }}
-                                        >
-                                            <Text style={{ color: 'red', fontSize: 14 }}>Remove</Text>
+                                        {file.type?.startsWith('video/') && (
+                                            <MaterialCommunityIcons name="video" size={40} color="gray" style={{ marginRight: 8 }} />
+                                        )}
+                                        
+                                        <Text style={{ flex: 1 }}>{file.fileName ?? 'Unnamed'}</Text>
+                                        <TouchableOpacity onPress={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}>
+                                        <Text style={{ color: 'red' }}>Remove</Text>
                                         </TouchableOpacity>
-                                        </View>
+                                    </View>
                                     ))}
                                 </View>
 
-                                
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Signature of Technician:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    {signTechnician ? (
+                                        // ===== Saved signature view =====
+                                        <View style={{ height: 200 }} pointerEvents="box-only">
+                                            <Image
+                                                resizeMode="contain"
+                                                style={{ width: 335, height: 114, backgroundColor: '#F8F8F8' }}
+                                                source={{ uri: signTechnician }}
+                                            />
+                                            <Button title="Re-sign" onPress={() => handleReSign("technician")} />
+                                        </View>
+                                    ) : (
+                                        // ===== Signature pad view =====
+                                        <View style={{ height: 400 }} pointerEvents="box-only">
+                                            <SignatureCanvas
+                                                ref={refTechnician}
+                                                onOK={(sig) => handleSignature(sig, "technician")}
+                                                onBegin={() => setScrollEnabled(false)}
+                                                onEnd={() => setScrollEnabled(true)}
+                                                webStyle={`
+                                                .m-signature-pad--footer {
+                                                    display: flex;
+                                                    justify-content: space-between;
+                                                    padding: 10px;
+                                                    background-color: #f0f0f0;
+                                                }
+                                                .m-signature-pad--footer .button {
+                                                    background-color: #007AFF;  /* iOS blue */
+                                                    color: white;
+                                                    border-radius: 6px;
+                                                    font-size: 16px;
+                                                    border: none;
+                                                }
+                                                .m-signature-pad--footer .button.clear {
+                                                    background-color: #FF3B30; /* iOS red for clear */
+                                                }
+                                                .m-signature-pad--footer .button.save {
+                                                    background-color: #34C759; /* iOS green for save */
+                                                }
+
+                                                `}
+                                                style={{ flex: 1 }}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Signature of Customer:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    {signCustomer ? (
+                                        // ===== Saved signature view =====
+                                        <View style={{ height: 200 }} pointerEvents="box-only">
+                                            <Image
+                                                resizeMode="contain"
+                                                style={{ width: 335, height: 114, backgroundColor: '#F8F8F8' }}
+                                                source={{ uri: signCustomer }}
+                                            />
+                                            <Button title="Re-sign" onPress={() => handleReSign("customer")} />
+                                        </View>
+                                    ) : (
+                                        // ===== Signature pad view =====
+                                        <View style={{ height: 400 }} pointerEvents="box-only">
+                                            <SignatureCanvas
+                                                ref={refCustomer}
+                                                onOK={(sig) => handleSignature(sig, "customer")}
+                                                onBegin={() => setScrollEnabled(false)}
+                                                onEnd={() => setScrollEnabled(true)}
+                                                webStyle={`
+                                                .m-signature-pad--footer {
+                                                    display: flex;
+                                                    justify-content: space-between;
+                                                    padding: 10px;
+                                                    background-color: #f0f0f0;
+                                                }
+                                                .m-signature-pad--footer .button {
+                                                    background-color: #007AFF;  /* iOS blue */
+                                                    color: white;
+                                                    border-radius: 6px;
+                                                    font-size: 16px;
+                                                    border: none;
+                                                }
+                                                .m-signature-pad--footer .button.clear {
+                                                    background-color: #FF3B30; /* iOS red for clear */
+                                                }
+                                                .m-signature-pad--footer .button.save {
+                                                    background-color: #34C759; /* iOS green for save */
+                                                }
+
+                                                `}
+                                                style={{ flex: 1 }}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
 
                                 <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.secondaryLightGreyHex}]} onPress={() => {console.log("Pause")}}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Pause </Text>
