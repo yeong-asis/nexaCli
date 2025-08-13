@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StatusBar, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Checkbox, Menu, TextInput } from "react-native-paper";
-import { AddItemScreenCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
+import { AddItemScreenCSS, defaultCSS, LoginManagementCSS, SignatureCSS } from '../../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import { useRoute } from '@react-navigation/native';
@@ -307,28 +307,7 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                                 onOK={(sig) => handleSignature(sig, "technician")}
                                                 onBegin={() => setScrollEnabled(false)}
                                                 onEnd={() => setScrollEnabled(true)}
-                                                webStyle={`
-                                                .m-signature-pad--footer {
-                                                    display: flex;
-                                                    justify-content: space-between;
-                                                    padding: 10px;
-                                                    background-color: #f0f0f0;
-                                                }
-                                                .m-signature-pad--footer .button {
-                                                    background-color: #007AFF;  /* iOS blue */
-                                                    color: white;
-                                                    border-radius: 6px;
-                                                    font-size: 16px;
-                                                    border: none;
-                                                }
-                                                .m-signature-pad--footer .button.clear {
-                                                    background-color: #FF3B30; /* iOS red for clear */
-                                                }
-                                                .m-signature-pad--footer .button.save {
-                                                    background-color: #34C759; /* iOS green for save */
-                                                }
-
-                                                `}
+                                                webStyle={SignatureCSS}
                                                 style={{ flex: 1 }}
                                             />
                                         </View>
@@ -358,28 +337,7 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                                 onOK={(sig) => handleSignature(sig, "customer")}
                                                 onBegin={() => setScrollEnabled(false)}
                                                 onEnd={() => setScrollEnabled(true)}
-                                                webStyle={`
-                                                .m-signature-pad--footer {
-                                                    display: flex;
-                                                    justify-content: space-between;
-                                                    padding: 10px;
-                                                    background-color: #f0f0f0;
-                                                }
-                                                .m-signature-pad--footer .button {
-                                                    background-color: #007AFF;  /* iOS blue */
-                                                    color: white;
-                                                    border-radius: 6px;
-                                                    font-size: 16px;
-                                                    border: none;
-                                                }
-                                                .m-signature-pad--footer .button.clear {
-                                                    background-color: #FF3B30; /* iOS red for clear */
-                                                }
-                                                .m-signature-pad--footer .button.save {
-                                                    background-color: #34C759; /* iOS green for save */
-                                                }
-
-                                                `}
+                                                webStyle={SignatureCSS}
                                                 style={{ flex: 1 }}
                                             />
                                         </View>
