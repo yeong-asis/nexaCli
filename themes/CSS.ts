@@ -361,26 +361,35 @@ export const AddItemScreenCSS = StyleSheet.create({
     },
 });
 
-export const SignatureCSS = `    
+export const SignatureCSS = `   
+    .m-signature-pad {
+        height: 100%; 
+    } 
     .m-signature-pad--footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
         display: flex;
         justify-content: space-between;
         padding: 10px;
         background-color: #f0f0f0;
     }
     .m-signature-pad--footer .button {
-        background-color: #007AFF;  /* iOS blue */
+        background-color: #007AFF;
         color: white;
         border-radius: 6px;
         font-size: 16px;
         border: none;
     }
     .m-signature-pad--footer .button.clear {
-        background-color: #FF3B30; /* iOS red for clear */
+        background-color:rgb(177, 9, 0);
     }
     .m-signature-pad--footer .button.save {
-        background-color: #34C759; /* iOS green for save */
-    }`;
+        background-color:rgb(0, 101, 25);
+    }
+`;
+
 
 export const ButtonCSS = StyleSheet.create({
     ButtonContainer: {

@@ -10,6 +10,7 @@ import HeaderBar from '../../functions/HeaderBar';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import EmptyListContainer from '../../functions/EmptyListContainer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { SampleTask } from '../../../objects/SampleJsonData';
 
 const MaterialListScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -30,14 +31,14 @@ const MaterialListScreen = ({ navigation }: { navigation: any }) => {
         const getUserID = await AsyncStorage.getItem('UserID') ?? "";
 
         try {
-            await axios.get(
-                `${IPAddress}/api/dashboard/materialReq?userId=${getUserID}`
-            ).then(async response => {
+            // await axios.get(
+            //     `${IPAddress}/api/dashboard/materialReq?userId=${getUserID}`
+            // ).then(async response => {
                 
-                const responseData=response.data;
+                // const responseData=response.data;
                 
-                // const responseData = SampleTask.taskList;
-                // console.log(responseData)
+                const responseData = SampleTask.taskList;
+                console.log(responseData[0])
 
                 const formattedMessages = responseData.map((item: any) => {
                     return {
@@ -66,10 +67,10 @@ const MaterialListScreen = ({ navigation }: { navigation: any }) => {
                 }
                 setProcessData(false);
                 
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+            // }).catch(error => {
+            //     setProcessData(false);
+            //     console.log(error);
+            // });
             
         }catch (error: any) {
             setProcessData(false);
@@ -146,7 +147,7 @@ const MaterialListScreen = ({ navigation }: { navigation: any }) => {
                         </View>
                     ) : (
                         <View style={{alignItems:"center", justifyContent: "center", flex: 0.9,}}>
-                            <EmptyListContainer title={'No Request now.'} />
+                            <EmptyListContainer title={'No Material Request now.'} />
                         </View>
                     )
                 )}

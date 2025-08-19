@@ -39,7 +39,7 @@ const JobListScreen = ({ navigation }: { navigation: any }) => {
         }
 
         try {
-            await axios.get( runURL ).then(async response => {
+            // await axios.get( runURL ).then(async response => {
                 
                 const responseData = sampleJobs.filter(job => {
                     if (requestStatus === "Approval") {
@@ -75,10 +75,10 @@ const JobListScreen = ({ navigation }: { navigation: any }) => {
                 }
                 setProcessData(false);
                 
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+            // }).catch(error => {
+            //     setProcessData(false);
+            //     console.log(error);
+            // });
 
         }catch (error: any) {
             setProcessData(false);

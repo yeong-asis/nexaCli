@@ -301,7 +301,7 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
                                     ) : (
                                         // ===== Signature pad view =====
-                                        <View style={{ height: 400 }} pointerEvents="box-only">
+                                        <View style={{ height: 200 }} pointerEvents="box-only">
                                             <SignatureCanvas
                                                 ref={refTechnician}
                                                 onOK={(sig) => handleSignature(sig, "technician")}
@@ -331,7 +331,7 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
                                     ) : (
                                         // ===== Signature pad view =====
-                                        <View style={{ height: 400 }} pointerEvents="box-only">
+                                        <View style={{ height: 200 }} pointerEvents="box-only">
                                             <SignatureCanvas
                                                 ref={refCustomer}
                                                 onOK={(sig) => handleSignature(sig, "customer")}

@@ -41,11 +41,13 @@ const MaterialListCard: React.FC<WorkflowProps> = ({
                     )}
 
                     <Text style={[styles.TextStatus, {
-                        backgroundColor: status=="New" 
+                        backgroundColor: status=="Pending" 
                             ? COLORS.secondaryLightGreyHex 
-                                : status=="Accepted" 
+                                : status=="Approved" 
                                     ? COLORS.primaryGreenHex
-                                    : COLORS.primaryRedHex
+                                    : status=="Rejected" 
+                                        ? COLORS.primaryRedHex
+                                        : COLORS.primaryOrangeHex
                     }]}>
                         {status}
                     </Text>

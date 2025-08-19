@@ -6,6 +6,11 @@ import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
+import { PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import Snackbar from 'react-native-snackbar';
+import Geolocation from "react-native-geolocation-service";
+import LoadingAnimation from '../../functions/LoadingAnimation';
+import LoadingOverlay from '../../functions/LoadingOverlay';
 
 const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -19,6 +24,8 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
 
     const [address, setAddress] = useState("");
     const [addressHelperText, setAddressHelperText] = useState(false);
+    const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+    const [loadLocation, setLoadLocation] = useState(false);
 
     const [title, setTitle] = useState("");
     const [titleHelperText, settitleHelperText] = useState(false);
@@ -74,6 +81,81 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
             mode: "date"
         });
     };
+
+    const getCurrentAddress = async () => {
+        try {
+            setLoadLocation(true);
+
+            // 1. Request permission
+            let permission =
+                Platform.OS === "ios"
+                    ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+                    : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
+
+            let result = await request(permission);
+            if (result !== RESULTS.GRANTED) {
+                Snackbar.show({
+                    text: "Location permission denied",
+                    duration: Snackbar.LENGTH_SHORT,
+                });
+                setLoadLocation(false);
+                return;
+            }
+
+            // 2. Get current location
+            Geolocation.getCurrentPosition(
+                async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+
+                    // 3. Reverse geocode into human-readable address
+                    const addr = await reverseGeocode(latitude, longitude);
+
+                    setCoords({ lat: latitude, lon: longitude });
+                    setAddress(addr); // ✅ directly update your TextInput value
+                    setLoadLocation(false);
+                },
+                (error) => {
+                    console.log(error);
+                    Snackbar.show({
+                        text: "Error getting location",
+                        duration: Snackbar.LENGTH_SHORT,
+                    });
+                    setLoadLocation(false);
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+            );
+        } catch (err) {
+            console.error("Error:", err);
+            setLoadLocation(false);
+        }
+    };
+
+    const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+                {
+                    headers: {
+                        "User-Agent": "YourAppName/1.0 (your@email.com)", // Nominatim requires this
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+            // Check content-type to avoid HTML parse error
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid response from geocoding service");
+            }
+
+            const data = await response.json();
+            return data.display_name || `${lat}, ${lon}`;
+        } catch (err) {
+            console.error("Reverse geocode failed:", err);
+            return `${lat}, ${lon}`; // fallback to coordinates
+        }
+    };
+
 
 
     return (
@@ -138,15 +220,24 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Address:</Text>
                                         <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                     </View>
+                                    {loadLocation ? (
+                                    <View style={{ alignSelf: "center", flex: 0.92, }}>
+                                        <LoadingOverlay />
+                                    </View>
+                                    ) : (
                                     <TextInput
                                         label=""
                                         mode="outlined"
                                         value={address}
-                                        // placeholder="Title"
+                                        multiline
+                                        numberOfLines={3}
                                         onChangeText={setAddress}
                                         returnKeyType="next"
+                                        right={<TextInput.Icon icon="crosshairs-gps" onPress={getCurrentAddress} />}
+                                        style={{ textAlignVertical: 'top', height: 100 }} 
                                         // onSubmitEditing={() => projectRef.current?.focus()}
                                     />
+                                    )}
                                     {addressHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Address can't be empty</Text>}
                                 </View>
                                 <View style={{flexDirection: "column", marginTop: 10}}>
@@ -305,6 +396,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                 </TouchableOpacity>
                             </View>
                         </View>
+
                         {Platform.OS == "ios" && (
                             <>
                             <DateTimePickerModal
