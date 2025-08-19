@@ -11,13 +11,23 @@ import Snackbar from 'react-native-snackbar';
 import Geolocation from "react-native-geolocation-service";
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import LoadingOverlay from '../../functions/LoadingOverlay';
+import { IPAddress, SelectionItem } from '../../../objects/objects';
+import axios from 'axios';
+import { Dropdown } from 'react-native-element-dropdown';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
     // const [selectedType, setSelectedType] = useState("Pending");
 
+    const [requester, setRequester] = useState("");
+    const [requesterName, setRequesterName] = useState("");
+    const [requesterMenuVisible, setRequesterMenuVisible] = useState(false);
+    const [requesterOptions, setRequesterOptions] = useState<SelectionItem[]>([]);
+
     const [customer, setCustomer] = useState("");
-    const [customerHelperText, setCustomerHelperText] = useState(false);
+    const [customerName, setCustomerName] = useState('');
+    const [customerOptions, setCustomerOptions] = useState<SelectionItem[]>([]);
 
     const [site, setSite] = useState("");
     const [siteHelperText, setSiteHelperText] = useState(false);
@@ -31,8 +41,13 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [titleHelperText, settitleHelperText] = useState(false);
 
     const [project, setProject] = useState("");
+    const [projectName, setProjectName] = useState("");
     const [projectMenuVisible, setProjectMenuVisible] = useState(false);
-    const projectOptions = ['Salesmate', 'ActiveCampaign', 'Insightly'];
+    const projectOptions = [
+        {'pkkey':'1','name':'Salesmate'}, 
+        {'pkkey':'2','name':'ActiveCampaign'}, 
+        {'pkkey':'3','name':'Insightly'}
+    ];
 
     const [startDate, setStartDate] = useState(new Date().toLocaleString());
     const [startDateTouched, setStartDateTouched] = useState(false);
@@ -52,7 +67,9 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
 
     useEffect(() => {
         (async () => {
-            
+            const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+            setRequester(getUserID);
+            await fetchedSelectionAPI(getUserID);
         })();
     }, []);
 
@@ -82,6 +99,46 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
         });
     };
 
+    const fetchedSelectionAPI = async(selectedUser: any) => {
+        setProcessData(true);
+
+        try {
+            // user list
+            await axios.get( 
+                `${IPAddress}/api/dashboard/getUser` 
+            ).then(async response => {
+                
+                const responseData=response.data;
+                setRequesterOptions(responseData);
+
+                const user = responseData.find((u: any) => u.pkkey === selectedUser);
+                setRequesterName(user?.fullName ?? '');
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
+            // customer list
+            await axios.get( 
+                `${IPAddress}/api/dashboard/getCustomer` 
+            ).then(async response => {
+                
+                const responseData=response.data;
+                setCustomerOptions(responseData);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
+            setProcessData(false);
+
+        }catch (error: any) {
+            setProcessData(false);
+            console.log("Error: "+error);
+        }
+    };
     const getCurrentAddress = async () => {
         try {
             setLoadLocation(true);
@@ -166,6 +223,12 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                 <HeaderBar title={`Add New Job: `} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
 
+                {processData ? (
+                    <View style={{ alignSelf: "center", flex: 0.92, }}>
+                        <LoadingAnimation />
+                    </View>
+                ) : (
+
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
                     style={{ flex: 1 }}
@@ -188,16 +251,33 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Customer:</Text>
                                         <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                     </View>
-                                    <TextInput
-                                        label=""
-                                        mode="outlined"
+                                    <Dropdown
+                                        style={[
+                                            AddItemScreenCSS.dropdown,
+                                        ]}
+                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                        containerStyle={AddItemScreenCSS.listContainerStyle}
+                                        activeColor={COLORS.primaryVeryLightGreyHex}
+                                        data={customerOptions}
+                                        search
+                                        searchPlaceholder="Search customer..."
+                                        labelField="name"
+                                        valueField="pkkey"
+                                        placeholder={customerName || 'Select customer'}
                                         value={customer}
-                                        // placeholder="Title"
-                                        onChangeText={setCustomer}
-                                        returnKeyType="next"
-                                        // onSubmitEditing={() => projectRef.current?.focus()}
+                                        onChange={item => {
+                                            setCustomer(item.pkkey);
+                                            setCustomerName(item.name);
+                                        }}
+                                        // performance tweaks:
+                                        maxHeight={300}
+                                        flatListProps={{
+                                            initialNumToRender: 20,
+                                            windowSize: 10,
+                                        }}
                                     />
-                                    {customerHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Customer can't be empty</Text>}
                                 </View>
                                 <View style={{flexDirection: "column", marginTop: 10}}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
@@ -279,36 +359,33 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                             <Text style={AddItemScreenCSS.TextInputFont}>Report:</Text>
                                             <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                         </View>
-                                        <Menu
-                                            visible={projectMenuVisible}
-                                            onDismiss={() => setProjectMenuVisible(false)}
-                                            anchor={
-                                            <TouchableOpacity onPress={() => console.log("AAA")}>
-                                            {/* <TouchableOpacity onPress={() => setProjectMenuVisible(true)}> */}
-                                                <TextInput
-                                                label=""
-                                                mode="outlined"
-                                                value={project}
-                                                editable={false}
-                                                pointerEvents="none"
-                                                right={<TextInput.Icon icon="menu-down" onPress={() => console.log("AAA")} />}
-                                                // right={<TextInput.Icon icon="menu-down" onPress={() => setProjectMenuVisible(true)} />}
-                                                />
-                                            </TouchableOpacity>
-                                            }
-                                        >
-                                            {projectOptions.map((option) => (
-                                            <Menu.Item
-                                                key={option}
-                                                onPress={() => {
-                                                    console.log("AAA")
-                                                    // setProject(option);
-                                                    // setProjectMenuVisible(false);
-                                                }}
-                                                title={option}
-                                            />
-                                            ))}
-                                        </Menu>
+                                        <Dropdown
+                                            style={[
+                                                AddItemScreenCSS.dropdown,
+                                            ]}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={projectOptions}
+                                            search
+                                            searchPlaceholder="Search Report..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={projectName || 'Select Report'}
+                                            value={project}
+                                            onChange={item => {
+                                                setProject(item.pkkey);
+                                                setProjectName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
                                     </View>
                                 </View>
 
@@ -515,6 +592,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                         </Modal>
                     </ScrollView>
                 </KeyboardAvoidingView>
+                )}
             </View>
         </View>
     );
