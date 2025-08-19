@@ -8,6 +8,7 @@ import { COLORS } from '../../themes/theme';
 import { LoginManagementCSS, ButtonCSS, defaultCSS, FooterCSS } from '../../themes/CSS';
 import KeyboardAvoidWrapper from '../functions/KeyboardAvoidWrapper';
 import { IPAddress } from '../../objects/objects';
+import { ForceNewFCMToken } from '../functions/pushNotification';
 
 const LoginScreen = ({navigation}: any) => {
     const [userName, setUserName] = useState('jasonchew@asis-technologies.com');
@@ -36,6 +37,10 @@ const LoginScreen = ({navigation}: any) => {
         } else {
             setpasswordHelperText(false)
         }
+
+        await ForceNewFCMToken();
+        const showFCMToken = await AsyncStorage.getItem('fcmtoken') ?? "";
+        console.log("FCM Token: "+showFCMToken);
 
         if (!emtpy) {
             try {

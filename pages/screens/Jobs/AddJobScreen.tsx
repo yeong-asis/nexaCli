@@ -53,7 +53,6 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [startDateTouched, setStartDateTouched] = useState(false);
 
     const [priority, setPriority] = useState("");
-    const [assignedTo, setAssignedTo] = useState("");
 
     const [selectedPersons, setSelectedPersons] = useState<string[]>([]);
     const [showPersonPicker, setShowPersonPicker] = useState(false);
@@ -112,7 +111,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                 setRequesterOptions(responseData);
 
                 const user = responseData.find((u: any) => u.pkkey === selectedUser);
-                setRequesterName(user?.fullName ?? '');
+                setRequesterName(user?.name ?? '');
                 
             }).catch(error => {
                 setProcessData(false);
@@ -427,11 +426,30 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                             <Text style={AddItemScreenCSS.TextInputFont}>Assigned To:</Text>
                                             <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                         </View>
-                                        <TextInput
-                                            label=""
-                                            mode="outlined"
-                                            value={assignedTo}
-                                            onChangeText={setAssignedTo}
+                                        <Dropdown
+                                            style={AddItemScreenCSS.dropdown}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={requesterOptions}
+                                            search
+                                            searchPlaceholder="Search Technician..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={requesterName || 'Assign To'}
+                                            value={requester}
+                                            onChange={item => {
+                                                setRequester(item.pkkey);
+                                                setRequesterName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={280}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
                                         />
                                     </View>
 

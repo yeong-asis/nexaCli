@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
+import messaging, { deleteToken, getMessaging, getToken } from '@react-native-firebase/messaging';
 import { useNavigation } from '@react-navigation/native';
 import { PermissionsAndroid } from 'react-native';
 
@@ -35,6 +35,30 @@ export async function GetFCMToken() {
         }
     }
 }
+
+export async function ForceNewFCMToken() {
+    try {
+        const messagingInstance = getMessaging();
+
+        // Delete old token from Firebase
+        await deleteToken(messagingInstance);
+        console.log("Deleted old FCM token");
+
+        // Clear cached token in AsyncStorage
+        await AsyncStorage.removeItem("fcmtoken");
+
+        // Request new token
+        const newToken = await getToken(messagingInstance);
+        console.log("Generated NEW FCM token:", newToken);
+
+        await AsyncStorage.setItem("fcmtoken", newToken);
+        return newToken;
+    } catch (error) {
+        console.log("ForceNewFCMToken error:", error);
+        return null;
+    }
+}
+
 
 export const NotificationListner = async () => {
     messaging().onNotificationOpenedApp(async remoteMessage => {

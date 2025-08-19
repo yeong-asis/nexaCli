@@ -120,14 +120,12 @@ export const ProfileScreen = ({navigation}: any) => {
                             }}>
                                 <TouchableOpacity style={[ProfileCSS.ButtonContainer, {}]} onPress={async () => {
                                     try {
+                                        // await AsyncStorage.removeItem("UserID");
                                         await AsyncStorage.multiRemove([
-                                            "UserIC", 
                                             "UserID", 
-                                            "UserPosition", 
-                                            "UserLevel", 
+                                            "Department",  
                                             "FullName", 
-                                            "FacePicture", 
-                                            "UserType"
+                                            "Email"
                                         ]);
                             
                                         navigation.navigate("Login");
