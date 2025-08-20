@@ -22,7 +22,6 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
 
     const [requester, setRequester] = useState("");
     const [requesterName, setRequesterName] = useState("");
-    const [requesterMenuVisible, setRequesterMenuVisible] = useState(false);
     const [requesterOptions, setRequesterOptions] = useState<SelectionItem[]>([]);
 
     const [customer, setCustomer] = useState("");
@@ -34,7 +33,6 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
 
     const [address, setAddress] = useState("");
     const [addressHelperText, setAddressHelperText] = useState(false);
-    const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
     const [loadLocation, setLoadLocation] = useState(false);
 
     const [title, setTitle] = useState("");
@@ -42,7 +40,6 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
 
     const [project, setProject] = useState("");
     const [projectName, setProjectName] = useState("");
-    const [projectMenuVisible, setProjectMenuVisible] = useState(false);
     const projectOptions = [
         {'pkkey':'1','name':'Salesmate'}, 
         {'pkkey':'2','name':'ActiveCampaign'}, 
@@ -124,6 +121,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
             ).then(async response => {
                 
                 const responseData=response.data;
+                console.log("Customer List: "+responseData)
                 setCustomerOptions(responseData);
                 
             }).catch(error => {
@@ -135,9 +133,16 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
 
         }catch (error: any) {
             setProcessData(false);
-            console.log("Error: "+error);
+            if (error.response) {
+                console.log("Server responded:", error.response.data);
+            } else if (error.request) {
+                console.log("No response received:", error.request);
+            } else {
+                console.log("Axios error:", error.message);
+            }
         }
     };
+
     const getCurrentAddress = async () => {
         try {
             setLoadLocation(true);
@@ -166,8 +171,7 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                     // 3. Reverse geocode into human-readable address
                     const addr = await reverseGeocode(latitude, longitude);
 
-                    setCoords({ lat: latitude, lon: longitude });
-                    setAddress(addr); // ✅ directly update your TextInput value
+                    setAddress(addr);
                     setLoadLocation(false);
                 },
                 (error) => {

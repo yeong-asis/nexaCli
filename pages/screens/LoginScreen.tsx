@@ -41,15 +41,15 @@ const LoginScreen = ({navigation}: any) => {
             setpasswordHelperText(false)
         }
 
-        await ForceNewFCMToken();
-        const showFCMToken = await AsyncStorage.getItem('fcmtoken') ?? "";
-        console.log("FCM Token: "+showFCMToken);
-
         if (!emtpy) {
             try {
                 await axios.get(
                     `${IPAddress}/api/dashboard/login?email=${username}&password=${password}`
                 ).then(async response => {
+
+                    await ForceNewFCMToken();
+                    const showFCMToken = await AsyncStorage.getItem('fcmtoken') ?? "";
+                    console.log("FCM Token: "+showFCMToken);
                     
                     const responseData=response.data;
 
