@@ -9,8 +9,11 @@ import { LoginManagementCSS, ButtonCSS, defaultCSS, FooterCSS } from '../../them
 import KeyboardAvoidWrapper from '../functions/KeyboardAvoidWrapper';
 import { IPAddress } from '../../objects/objects';
 import { ForceNewFCMToken } from '../functions/pushNotification';
+import DeviceInfo from 'react-native-device-info';
 
 const LoginScreen = ({navigation}: any) => {
+    const appVersion = DeviceInfo.getVersion();
+    
     const [userName, setUserName] = useState('jasonchew@asis-technologies.com');
     const [password, setPassword] = useState('Asis!234');
     const [ishide, setishide] = useState(true);
@@ -159,7 +162,7 @@ const LoginScreen = ({navigation}: any) => {
 
             {/* Footer */}
             <View style={[FooterCSS.FooterContainer,]}>
-                <Text style={FooterCSS.FooterText}>Version: {"000"}</Text>
+                <Text style={FooterCSS.FooterText}>Version: {appVersion}</Text>
             </View>
 
             <Snackbar

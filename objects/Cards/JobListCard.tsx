@@ -5,10 +5,16 @@ import { JobProps } from '../objects';
 
 const JobListCard: React.FC<JobProps> = ({
     pkkey,
+    code,
+    customerID,
+    customerName,
+    siteID,
+    siteName,
+    address,
     title,
-    status,
     type,
     report,
+    status,
     startDate,
     assignTo,
     priority,
@@ -21,7 +27,7 @@ const JobListCard: React.FC<JobProps> = ({
             <View style={{flexDirection: "row"}}>
                 <View style={{flexDirection: "column", width: "60%",}}>
                     <Text style={[styles.TextTitle, {width: "100%",}]}>{title}</Text>
-                    {/* <Text style={[styles.TextDescription, {}]}>{code}</Text> */}
+                    <Text style={[styles.TextDescription, {}]}>{description}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
                     <Text style={[styles.TextStatus, {

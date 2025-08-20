@@ -96,7 +96,7 @@ export const ProfileScreen = ({navigation}: any) => {
                                         {/* <GradientBGIcon name={"info"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
                                         <Octicons name="info" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
                                     </View>
-                                    <Text style={ProfileCSS.ButtonTextCSS}> {"More Info"}</Text>
+                                    <Text style={ProfileCSS.ButtonTextCSS}> {"More Info"}</Text>    
                                 </TouchableOpacity>
                             </View>
 
