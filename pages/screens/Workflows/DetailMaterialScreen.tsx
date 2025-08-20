@@ -25,7 +25,7 @@ type ProductItem = {
 
 const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
     const route = useRoute();
-    const { key } = route.params as any;
+    const { key, code } = route.params as any;
     const [processData, setProcessData] = useState(false);
     const [selectedType, setSelectedType] = useState("General");
     const [fetchedData, setFetchedData] = useState([]);
@@ -396,7 +396,7 @@ const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
             
             <View style={{ flex: 1 }}>
-                <HeaderBar title={`Material Detail: `} checkBackBttn={true} />
+                <HeaderBar title={`${code}`} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
 
                 {processData ? (

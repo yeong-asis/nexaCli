@@ -95,6 +95,7 @@ const MaterialListScreen = ({ navigation }: { navigation: any }) => {
             <TouchableOpacity onPress={() => {
                 navigation.navigate('DetailMaterial', {
                     key: item.pkkey, 
+                    code: item.code,
                 });
             }} >
                 <MaterialListCard 
