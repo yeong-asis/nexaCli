@@ -599,42 +599,42 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                 </View>
 
                                 {/* ── Attach Files Section ──────────────────────────────────────── */}
-                                    <View style={{ marginTop: 16 }}>
-                                        {/* (a) Button to open document picker */}
-                                        <TouchableOpacity
-                                            onPress={()=>pickFiles()}
-                                            // onPress={pickFiles}
-                                            style={{
-                                            paddingVertical: 12,
-                                            paddingHorizontal: 16,
-                                            backgroundColor: COLORS.primaryLightGreyHex,
-                                            borderRadius: 6,
-                                            alignSelf: 'flex-start',
-                                            }}
-                                        >
-                                            <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
-                                        </TouchableOpacity>
-    
-                                        {attachments.map((file, idx) => (
-                                        <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                                            {file.type?.startsWith('image/') && (
-                                                <Image
-                                                    source={{ uri: file.uri }}
-                                                    style={{ width: 50, height: 50, marginRight: 8, borderRadius: 4 }}
-                                                />
-                                            )}
-    
-                                            {file.type?.startsWith('video/') && (
-                                                <MaterialCommunityIcons name="video" size={40} color="gray" style={{ marginRight: 8 }} />
-                                            )}
-                                            
-                                            <Text style={{ flex: 1 }}>{file.fileName ?? 'Unnamed'}</Text>
-                                            <TouchableOpacity onPress={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}>
+                                <View style={{ marginTop: 16 }}>
+                                    {/* (a) Button to open document picker */}
+                                    <TouchableOpacity
+                                        onPress={()=>pickFiles()}
+                                        // onPress={pickFiles}
+                                        style={{
+                                        paddingVertical: 12,
+                                        paddingHorizontal: 16,
+                                        backgroundColor: COLORS.primaryLightGreyHex,
+                                        borderRadius: 6,
+                                        alignSelf: 'flex-start',
+                                        }}
+                                    >
+                                        <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
+                                    </TouchableOpacity>
+
+                                    {attachments.map((file, idx) => (
+                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                        {file.type?.startsWith('image/') && (
+                                            <Image
+                                                source={{ uri: file.uri }}
+                                                style={{ width: 50, height: 50, marginRight: 8, borderRadius: 4 }}
+                                            />
+                                        )}
+
+                                        {file.type?.startsWith('video/') && (
+                                            <MaterialCommunityIcons name="video" size={40} color="gray" style={{ marginRight: 8 }} />
+                                        )}
+                                        
+                                        <Text style={{ flex: 1 }}>{file.fileName ?? 'Unnamed'}</Text>
+                                        <TouchableOpacity onPress={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}>
                                             <Text style={{ color: 'red' }}>Remove</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                        ))}
+                                        </TouchableOpacity>
                                     </View>
+                                    ))}
+                                </View>
 
                                 </>
                                 ) : (

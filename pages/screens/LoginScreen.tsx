@@ -105,7 +105,7 @@ const LoginScreen = ({navigation}: any) => {
                         }} />
                     </View>
 
-{                   /* Form Card */}
+                    {/* Form Card */}
                     <View style={[LoginManagementCSS.widthAndAdjustment, LoginManagementCSS.CardShadow]}>
                         <View style={[LoginManagementCSS.CardContainer, {padding: 25, }]}>
                             <View style={{flexDirection: "column", marginTop: 20}}>

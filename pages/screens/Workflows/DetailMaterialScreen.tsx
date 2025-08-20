@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { Checkbox, TextInput } from "react-native-paper";
 import { AttachmentsProps, IPAddress, SelectionItem, WorkflowInfoProps, WorkflowLogProps } from '../../../objects/objects';
@@ -13,6 +13,7 @@ import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../..
 import HeaderBar from '../../functions/HeaderBar';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 
 type ProductItem = {
     name: string;
@@ -101,40 +102,28 @@ const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
         }).format(amount);
     };
 
-    // const pickFiles = async () => {
-    //     try {
-    //         const result = await DocumentPicker.getDocumentAsync({
-    //         type: '*/*',
-    //         multiple: true,
-    //         copyToCacheDirectory: true,
-    //         });
+    const pickFiles = async () => {
+        try {
+            const options: ImageLibraryOptions = {
+                mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
+                selectionLimit: 0,  // 0 means unlimited selection
+                includeBase64: false, // Optional: if you need base64 data
+            };
 
-    //         // Newer versions return { canceled: boolean; assets?: Array<...> }
-    //         // Older versions returned { type: 'success' | 'cancel', uri, name, size, mimeType }
-    //         if ('canceled' in result) {
-    //             // SDK ≥ 48 style: “canceled” + possibly “assets”
-    //             if (!result.canceled) {
-    //                 // If multiple was supported, result.assets is an array:
-    //                 if (Array.isArray((result as any).assets)) {
-    //                     setAttachments(prev => [...prev, ...((result as any).assets)]);
-    //                 } else {
-    //                     // If multiple not supported, it may still be a single object with uri/name:
-    //                     // (Some platforms only return a single “asset” object.)
-    //                     const single = (result as any).assets?.[0] ?? result;
-    //                     setAttachments(prev => [...prev, single]);
-    //                 }
-    //             }
-    //         } else if ((result as any).type) {
-    //             // Fallback for older SDKs where result.type === 'success' | 'cancel'
-    //             if ((result as any).type === 'success') {
-    //                 setAttachments(prev => [...prev, result]);
-    //             }
-    //             // if type === 'cancel', do nothing
-    //         }
-    //     } catch (err) {
-    //         console.warn('Error picking files:', err);
-    //     }
-    // };
+            launchImageLibrary(options, (response) => {
+                if (response.didCancel) {
+                    console.log('User cancelled picker');
+                } else if (response.errorCode) {
+                    console.error('ImagePicker Error: ', response.errorMessage);
+                } else {
+                    const picked: Asset[] = response.assets ?? [];
+                    setAttachments((prev) => [...prev, ...picked]);
+                }
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const fetchedDataAPI = async() => {
         setProcessData(true);
@@ -147,6 +136,8 @@ const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
             ).then(async response => {
                 
                 const responseData=response.data;
+
+                console.log(responseData)
                 
                 setRequester(responseData[0].requester);
                 setCustomer(responseData[0].customer);
@@ -220,8 +211,9 @@ const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
                 const responseData=response.data;
                 setRequesterOptions(responseData);
 
+                // const user = responseData.find((u: any) => u.name === selectedUser);
                 const user = responseData.find((u: any) => u.pkkey === selectedUser);
-                setRequesterName(user?.fullName ?? '');
+                setRequesterName(user?.name ?? '');
                 
             }).catch(error => {
                 console.log(error);
@@ -759,7 +751,7 @@ const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
                                 <View style={{ marginTop: 16 }}>
                                     {/* (a) Button to open document picker */}
                                     <TouchableOpacity
-                                        onPress={()=>console.log("pick file")}
+                                        onPress={()=>pickFiles()}
                                         // onPress={pickFiles}
                                         style={{
                                         paddingVertical: 12,
@@ -772,96 +764,26 @@ const MaterialDetailScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
                                     </TouchableOpacity>
 
-                                    {/* (b) Show a list of picked files, each with a “Remove” control */}
                                     {attachments.map((file, idx) => (
-                                        <View
-                                        key={idx}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            marginTop: 8,
-                                            padding: 8,
-                                            backgroundColor: '#F5F5F5',
-                                            borderRadius: 4,
-                                        }}
-                                        >
-                                        {/* Show the file name (truncate if too long) */}
-                                        <Text
-                                            style={{ flex: 1, fontSize: 14 }}
-                                            numberOfLines={1}
-                                            ellipsizeMode="middle"
-                                        >
-                                            {file.name ?? 'Unknown file'}
-                                        </Text>
+                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                        {file.type?.startsWith('image/') && (
+                                            <Image
+                                                source={{ uri: file.uri }}
+                                                style={{ width: 50, height: 50, marginRight: 8, borderRadius: 4 }}
+                                            />
+                                        )}
 
-                                        {/* “Remove” button to drop this attachment */}
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                            setAttachments(prev => prev.filter((_, i) => i !== idx));
-                                            }}
-                                            style={{ paddingHorizontal: 8, paddingVertical: 4 }}
-                                        >
-                                            <Text style={{ color: 'red', fontSize: 14 }}>Remove</Text>
-                                        </TouchableOpacity>
-                                        </View>
-                                    ))}
-                                </View>
-
-                                {currentAttachment.length>0 && (
-                                <View style={{ marginTop: 10 }}>
-                                    {currentAttachment.map((file, idx) => (
-                                    <View
-                                        key={idx}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            marginTop: 8,
-                                            padding: 8,
-                                            backgroundColor: '#F5F5F5',
-                                            borderRadius: 4,
-                                        }}
-                                    >
-                                        <Text style={{ flex: 1, fontSize: 14 }} numberOfLines={1} ellipsizeMode="middle">
-                                            {file.fileName ?? 'Unknown file'}
-                                        </Text>
-
-                                        <MaterialCommunityIcons
-                                            name="download"
-                                            size={18}
-                                            color={COLORS.primaryLightGreyHex}
-                                            onPress={() => {
-                                                navigation.navigate('ViewAttachment', {
-                                                    fileName: file.fileName,
-                                                    attachmentLink: file.attachmentLink
-                                                });
-                                            }}
-                                            style={{padding: 10}}
-                                        />
+                                        {file.type?.startsWith('video/') && (
+                                            <MaterialCommunityIcons name="video" size={40} color="gray" style={{ marginRight: 8 }} />
+                                        )}
                                         
-                                        <MaterialCommunityIcons
-                                            name="eye-outline"
-                                            size={18}
-                                            color={COLORS.primaryLightGreyHex}
-                                            onPress={() => {
-                                                navigation.navigate('ViewAttachment', {
-                                                    fileName: file.fileName,
-                                                    attachmentLink: file.attachmentLink
-                                                });
-                                            }}
-                                            style={{padding: 10}}
-                                        />
-
-                                        <MaterialCommunityIcons
-                                            name="trash-can-outline"
-                                            size={18}
-                                            color={COLORS.primaryRedHex}
-                                            onPress={() => console.log('Remove')}
-                                            style={{padding: 10}}
-                                        />
+                                        <Text style={{ flex: 1 }}>{file.fileName ?? 'Unnamed'}</Text>
+                                        <TouchableOpacity onPress={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}>
+                                            <Text style={{ color: 'red' }}>Remove</Text>
+                                        </TouchableOpacity>
                                     </View>
                                     ))}
                                 </View>
-                                )}
 
                                 <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Done")}}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>
