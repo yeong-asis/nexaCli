@@ -29,7 +29,7 @@ const WorkflowListScreen = ({ navigation }: { navigation: any }) => {
                         <TouchableOpacity
                         onPress={() => {
                             if(item.navigate!=""){
-                                navigation.navigate('MainMaterial', {
+                                navigation.navigate(item.navigate, {
                                     key: "", 
                                 });
                             }else{

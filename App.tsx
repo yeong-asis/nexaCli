@@ -20,6 +20,8 @@ import ViewAttachmentScreen from './pages/screens/ViewAttachment';
 import JobListScreen from './pages/screens/Jobs/MainJobScreen';
 import AddJobScreen from './pages/screens/Jobs/AddJobScreen';
 import JobDetailScreen from './pages/screens/Jobs/DetailJobScreen';
+import StockListScreen from './pages/screens/Workflows/MainStockScreen';
+import AddStockScreen from './pages/screens/Workflows/AddStockScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +68,8 @@ const App = () => {
           <Stack.Screen name="MainMaterial" component={MaterialListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddMaterial" component={AddMaterialScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="DetailMaterial" component={MaterialDetailScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="MainStock" component={StockListScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="AddStock" component={AddStockScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="MainJob" component={JobListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddJob" component={AddJobScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="DetailJob" component={JobDetailScreen} options={{animation: 'slide_from_bottom'}} />
