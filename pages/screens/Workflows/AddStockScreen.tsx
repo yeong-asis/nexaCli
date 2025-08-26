@@ -9,6 +9,7 @@ import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
 import { IPAddress, SelectionItem } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Snackbar from 'react-native-snackbar';
 
 type ProductItem = {
     name: string;
@@ -22,15 +23,11 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
 
     const [requester, setRequester] = useState("");
     const [requesterName, setRequesterName] = useState("");
-    const [requesterMenuVisible, setRequesterMenuVisible] = useState(false);
     const [requesterOptions, setRequesterOptions] = useState<SelectionItem[]>([]);
-    // const requesterOptions = ["Alice", "Bob", "Charlie", "David"];
 
     const [category, setCategory] = useState("");
     const [categoryName, setCategoryName] = useState("");
-    const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState<SelectionItem[]>([]);
-    // const categoryOptions = ['Production', 'Project', 'Marketing'];
 
     const [deliverTo, setDeliverTo] = useState('');
     const [deliverToName, setDeliverToName] = useState('');
@@ -40,13 +37,12 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
     const [receiveFromName, setReceiveFromName] = useState('');
     const [receiveFromOptions, setReceiveFromOptions] = useState<SelectionItem[]>([]);
 
-    const [movementType, setMovementType] = useState('');
-    const [movementTypeMenuVisible, setMovementTypeMenuVisible] = useState(false);
-    const movementTypeOptions = ['IN', 'OUT'];
+    const [movementType, setMovementType] = useState('IN');
+    const [movementTypeName, setMovementTypeName] = useState('IN');
+    const movementTypeOptions = [{'pkkey':'IN', 'name':'IN'}, {'pkkey':'OUT', 'name':'OUT'}];
 
     const [purpose, setPurpose] = useState("");
     const [remark, setRemark] = useState("");
-    const [skipValidator, setSkipValidator] = useState(false);
     const [attachments, setAttachments] = useState<any[]>([]);
 
     // Products Part
@@ -158,6 +154,54 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
+    const submitAddStock = async (
+        requestID: any, 
+        category: any,
+        movementType: any,
+        receiveFrom: any,
+        deliverTo: any,
+        purpose: any,
+        remark: any,
+        products: any,
+    ) => {
+
+        // console.log(products)
+
+        // Snackbar.show({
+        //     text: "receiveFrom: "+receiveFrom,
+        //     duration: Snackbar.LENGTH_LONG,
+        // });
+
+
+        // const smqRequest: SMQRequest = {
+        //     requesterID: requestID,
+        //     category: category,
+        //     movementType: movementType,
+        //     approverList: [],
+        //     implementerList: [],
+        //     productList: [product],
+        //     uploadAttachmentList: [attachment],
+        //     workflowStatus: 0,
+        //     smqDetail: smq,
+        //     smqList: [smq],
+        // };
+
+        // try {
+        //     const response = await axios.post(
+        //     "https://your-api-server.com/api/smq/submit",
+        //         smqRequest,
+        //         {
+        //             headers: {
+        //             "Content-Type": "application/json",
+        //             },
+        //         }
+        //     );
+        //     console.log("✅ Submitted successfully:", response.data);
+        // } catch (error: any) {
+        //     console.error("❌ Submission failed:", error.message);
+        // }
+    }
+
     return (
         <View style={defaultCSS.ScreenContainer}>
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
@@ -244,36 +288,70 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                     />
                                 </View>
 
-                                <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1, marginRight: 10 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                        </View>
+                                        <Dropdown
+                                            style={AddItemScreenCSS.dropdown}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={categoryOptions}
+                                            search
+                                            searchPlaceholder="Search Category..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={categoryName || 'Select Category'}
+                                            value={category}
+                                            onChange={item => {
+                                                setCategory(item.pkkey);
+                                                setCategoryName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
                                     </View>
-                                    <Dropdown
-                                        style={AddItemScreenCSS.dropdown}
-                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                        containerStyle={AddItemScreenCSS.listContainerStyle}
-                                        activeColor={COLORS.primaryVeryLightGreyHex}
-                                        data={categoryOptions}
-                                        search
-                                        searchPlaceholder="Search Category..."
-                                        labelField="name"
-                                        valueField="pkkey"
-                                        placeholder={categoryName || 'Select Category'}
-                                        value={category}
-                                        onChange={item => {
-                                            setCategory(item.pkkey);
-                                            setCategoryName(item.name);
-                                        }}
-                                        // performance tweaks:
-                                        maxHeight={300}
-                                        flatListProps={{
-                                            initialNumToRender: 20,
-                                            windowSize: 10,
-                                        }}
-                                    />
+
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Movement Type</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                        </View>
+                                        <Dropdown
+                                            style={AddItemScreenCSS.dropdown}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={movementTypeOptions}
+                                            search
+                                            searchPlaceholder="Search..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={movementTypeName || 'Select'}
+                                            value={movementType}
+                                            onChange={item => {
+                                                setMovementType(item.pkkey);
+                                                setMovementTypeName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
+                                    </View>
                                 </View>
 
                                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
@@ -293,12 +371,19 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             activeColor={COLORS.primaryVeryLightGreyHex}
                                             data={receiveFromOptions}
                                             search
-                                            searchPlaceholder="Search Receive From..."
+                                            searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={receiveFromName || 'Select Receive From'}
+                                            placeholder={receiveFromName || 'Select...'}
                                             value={receiveFrom}
                                             onChange={item => {
+
+                                                // Snackbar.show({
+                                                //     text: "key: "+item.pkkey.toString(),
+                                                //     duration: Snackbar.LENGTH_LONG,
+                                                // });
+                                                console.log(item.pkkey);
+
                                                 setReceiveFrom(item.pkkey);
                                                 setReceiveFromName(item.name);
                                             }}
@@ -327,10 +412,10 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             activeColor={COLORS.primaryVeryLightGreyHex}
                                             data={deliverToOptions}
                                             search
-                                            searchPlaceholder="Search Deliver To..."
+                                            searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={deliverToName || 'Select Deliver To'}
+                                            placeholder={deliverToName || 'Select....'}
                                             value={deliverTo}
                                             onChange={item => {
                                                 setDeliverTo(item.pkkey);
@@ -376,18 +461,6 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
                                         placeholder="Enter Remark here"
                                     />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                                    <View style={AddItemScreenCSS.CheckboxCSS}>
-                                        <Checkbox
-                                            status={skipValidator ? 'checked' : 'unchecked'}
-                                            onPress={() => setSkipValidator(!skipValidator)}
-                                        />
-                                    </View>
-                                    <Text style={[AddItemScreenCSS.TextInputFont, { marginLeft: 8 }]}>
-                                        Skip Validator
-                                    </Text>
                                 </View>
 
                                 {/* ── Attach Files Section ──────────────────────────────────────── */}
@@ -528,7 +601,18 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 </>
                                 )}
 
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Done")}}>
+                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
+                                    submitAddStock(
+                                        requester,
+                                        category,
+                                        movementType,
+                                        receiveFrom,
+                                        deliverTo,
+                                        purpose,
+                                        remark,
+                                        products,
+                                    ) 
+                                }}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>
                                 </TouchableOpacity>
                             </View>

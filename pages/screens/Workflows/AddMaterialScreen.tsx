@@ -27,39 +27,27 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
 
     const [requester, setRequester] = useState("");
     const [requesterName, setRequesterName] = useState("");
-    const [requesterMenuVisible, setRequesterMenuVisible] = useState(false);
     const [requesterOptions, setRequesterOptions] = useState<SelectionItem[]>([]);
-    // const requesterOptions = ["Alice", "Bob", "Charlie", "David"];
 
     const [category, setCategory] = useState("");
     const [categoryName, setCategoryName] = useState("");
-    const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
     const [categoryOptions, setCategoryOptions] = useState<SelectionItem[]>([]);
-    // const categoryOptions = ['Production', 'Project', 'Marketing'];
 
     const [customer, setCustomer] = useState('');
     const [customerName, setCustomerName] = useState('');
-    const [customerMenuVisible, setCustomerMenuVisible] = useState(false);
     const [customerOptions, setCustomerOptions] = useState<SelectionItem[]>([]);
-    // const customerOptions = ['Customer A', 'Customer B', 'Customer C'];
 
     const [supplier, setSupplier] = useState('');
     const [supplierName, setSupplierName] = useState('');
-    const [supplierMenuVisible, setSupplierMenuVisible] = useState(false);
     const [supplierOptions, setSupplierOptions] = useState<SelectionItem[]>([]);
-    // const supplierOptions = ['Supplier A', 'Supplier B', 'Supplier C'];
 
     const [currency, setCurrency] = useState('');
     const [currencyName, setCurrencyName] = useState('');
-    const [currencyMenuVisible, setCurrencyMenuVisible] = useState(false);
     const [currencyOptions, setCurrencyOptions] = useState<SelectionItem[]>([]);
-    // const currencyOptions = ['SGD', 'MYR', 'USD'];
 
     const [paymentTerm, setPaymentTerm] = useState('');
     const [paymentTermName, setPaymentTermName] = useState('');
-    const [paymentTermMenuVisible, setPaymentTermMenuVisible] = useState(false);
     const [paymentTermOptions, setPaymentTermOptions] = useState<SelectionItem[]>([]);
-    // const paymentTermOptions = ['COD', 'TT in Advance', '15 days', '30 days', '60 days'];
 
     const [project, setProject] = useState("");
     const [paymentInstruction, setPaymentInstruction] = useState("");
@@ -221,35 +209,6 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
 
     const submitAddMaterial = async () => {
         
-
-        // const smqRequest: SMQRequest = {
-        //     id: 1,
-        //     requesterID: requester.id,
-        //     requesterList: [requester],
-        //     validatorIDList: [],
-        //     approverList: [],
-        //     implementerList: [],
-        //     productList: [product],
-        //     uploadAttachmentList: [attachment],
-        //     workflowStatus: 0,
-        //     smqDetail: smq,
-        //     smqList: [smq],
-        // };
-
-        // try {
-        //     const response = await axios.post(
-        //     "https://your-api-server.com/api/smq/submit",
-        //         smqRequest,
-        //         {
-        //             headers: {
-        //             "Content-Type": "application/json",
-        //             },
-        //         }
-        //     );
-        //     console.log("✅ Submitted successfully:", response.data);
-        // } catch (error: any) {
-        //     console.error("❌ Submission failed:", error.message);
-        // }
     }
 
     return (
