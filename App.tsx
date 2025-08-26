@@ -64,12 +64,14 @@ const App = () => {
           <Stack.Screen name="Dashboard" component={DashboardScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="ViewAttachmnet" component={ViewAttachmentScreen} options={{animation: 'slide_from_bottom'}} />
+          
           <Stack.Screen name="WorkflowList" component={WorkflowListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="MainMaterial" component={MaterialListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddMaterial" component={AddMaterialScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="DetailMaterial" component={MaterialDetailScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="MainStock" component={StockListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddStock" component={AddStockScreen} options={{animation: 'slide_from_bottom'}} />
+          
           <Stack.Screen name="MainJob" component={JobListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddJob" component={AddJobScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="DetailJob" component={JobDetailScreen} options={{animation: 'slide_from_bottom'}} />
