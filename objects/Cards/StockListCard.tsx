@@ -23,32 +23,36 @@ const StockListCard: React.FC<WorkflowProps> = ({
     getDate,
     createdDate,
 }) => {
-    const newFormatDate = new Date(dueDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
                 <View style={{flexDirection: "column", width: "60%",}}>
                     <Text style={[styles.TextTitle, {width: "100%",}]}>{code}</Text>
-                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{description}</Text>
+                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{newFormatDate}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
 
                     <Text style={[styles.TextStatus, {
+                        width: 100,
+                        textAlign: "center",
                         backgroundColor: status=="New" 
                             ? COLORS.secondaryLightGreyHex
                             : status=="Completed"
                                 ? COLORS.primaryGreenHex
                                 : status=="Pending"
                                     ? COLORS.primaryOrangeHex
-                                    : COLORS.primaryRedHex
+                                    : status=="Validated"
+                                        ? COLORS.primaryYellowHex
+                                        : COLORS.primaryRedHex
                     }]}>
                         {status}
                     </Text>
 
                     {movementType!="" ? (
-                        <Text style={[styles.TextTitle, {width: "100%", textAlign: "right", fontSize: 18, paddingRight: 10}]}>
-                            <Text style={{fontSize: 14, color: COLORS.primaryLightGreyHex}}>
+                        <Text style={[styles.TextTitle, {width: "100%", textAlign: "right", fontSize: 14, paddingRight: 15,}]}>
+                            <Text style={{fontSize: 12, color: COLORS.primaryLightGreyHex}}>
                                 {"Type: "}
                             </Text>
                             {movementType}

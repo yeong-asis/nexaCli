@@ -10,6 +10,7 @@ import LoadingAnimation from '../../functions/LoadingAnimation';
 import EmptyListContainer from '../../functions/EmptyListContainer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import StockListCard from '../../../objects/Cards/StockListCard';
+import { sampleWorkflowData } from '../../../objects/SampleJsonData';
 
 const StockListScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -30,14 +31,14 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
         const getUserID = await AsyncStorage.getItem('UserID') ?? "";
 
         try {
-            await axios.get(
-                `${IPAddress}/api/dashboard/stockMov?userId=${getUserID}`
-            ).then(async response => {
+            // await axios.get(
+            //     `${IPAddress}/api/dashboard/stockMov?userId=${getUserID}`
+            // ).then(async response => {
                 
-                const responseData=response.data;
+                // const responseData=response.data;
                 
-                // const responseData = SampleTask.taskList;
-                // console.log(responseData)
+                const responseData = sampleWorkflowData;
+                console.log(responseData)
 
                 const formattedMessages = responseData.map((item: any) => {
                     return {
@@ -66,10 +67,10 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                 }
                 setProcessData(false);
                 
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+            // }).catch(error => {
+            //     setProcessData(false);
+            //     console.log(error);
+            // });
         
 
         }catch (error: any) {
@@ -93,7 +94,10 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
     const showWorkflowCard = ({ item }: { item: WorkflowProps }) => {
         return (
             <TouchableOpacity onPress={() => {
-                // console.log(item.project)
+                navigation.navigate('DetailStock', {
+                    key: item.pkkey, 
+                    code: item.code,
+                });
             }} >
                 <StockListCard 
                     pkkey={item.pkkey}
@@ -123,7 +127,7 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
             
             <View style={{ flex: 1 }}>
-                <HeaderBar title={`${"Stock"}: `} checkBackBttn={true} />
+                <HeaderBar title={`${"Stock Movement"}: `} checkBackBttn={true} />
                 {/* <View style={defaultCSS.LineContainer}></View> */}
 
                 {processData ? (

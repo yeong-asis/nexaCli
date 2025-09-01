@@ -1,56 +1,29 @@
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import { WorkflowProps } from '../objects';
+import { TaskProps } from '../objects';
 import { COLORS } from '../../themes/theme';
 
-
-const MaterialListCard: React.FC<WorkflowProps> = ({
+const TaskListCard: React.FC<TaskProps> = ({
     pkkey,
     code,
-    description,
+    title,
     status,
-    totalAmount,
-    currencyName,
-    remark,
-    requester,
-    dueDate,
-    productSeries,
-    productStage,
-    supplierName,
-    movementType,
-    debitAccount,
-    shipping,
-    getDate,
-    createdDate,
+    type,
 }) => {
-    // const newFormatDate = new Date(dueDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    // const newFormatDate = new Date(dateString).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
                 <View style={{flexDirection: "column", width: "60%",}}>
-                    <Text style={[styles.TextTitle, {width: "100%",}]}>{code}</Text>
-                    <Text style={[styles.TextDescription, {}]} numberOfLines={3}>{description}</Text>
+                    <Text style={[styles.TextTitle, {width: "100%",}]}>{title}</Text>
+                    <Text style={[styles.TextDescription, {}]}>{code}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
-
-                    {currencyName!="" && totalAmount!="" ? (
-                        <Text style={[styles.TextTitle, {width: "100%", textAlign: "right", fontSize: 14,}]}>{currencyName} {totalAmount}</Text>
-                    ) : (
-                        <></>
-                    )}
-
                     <Text style={[styles.TextStatus, {
-                        width: 120, textAlign: "center",
-                        backgroundColor: status=="Pending" 
-                            ? COLORS.secondaryLightGreyHex 
-                                : status=="Approved" 
-                                    ? COLORS.primaryGreenHex
-                                    : status=="Rejected" 
-                                        ? COLORS.primaryRedHex
-                                        : COLORS.primaryOrangeHex
+                        width: 120, textAlign: "center", backgroundColor: type=="Approval" ? COLORS.primaryGreenHex : status=="Accepted" ? COLORS.primaryGreenHex : COLORS.primaryRedHex,
                     }]}>
-                        {status}
+                        {type=="Approval" ? "Approved" : status}
                     </Text>
                 </View>
             </View>
@@ -68,7 +41,7 @@ const styles = StyleSheet.create({
     },
     TextTitle: {
         color: COLORS.primaryBlackHex,
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         marginVertical: 5,
         textAlign: "left",
@@ -99,4 +72,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default MaterialListCard;
+export default TaskListCard;

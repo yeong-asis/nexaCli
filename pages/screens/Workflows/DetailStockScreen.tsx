@@ -1,27 +1,28 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
-import { Checkbox, TextInput } from "react-native-paper";
-import { IPAddress, SelectionItem } from '../../../objects/objects';
+import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
+import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
-import LoadingAnimation from '../../functions/LoadingAnimation';
-import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SMQRequest } from '../../../objects/SMQClass';
+import axios from 'axios';
+import { AttachmentsProps, IPAddress, SelectionItem, WorkflowLogProps } from '../../../objects/objects';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Snackbar from 'react-native-snackbar';
+import { useRoute } from '@react-navigation/native';
+import WorkflowLogCard from '../../../objects/Cards/WorkflowLogCard';
 
 type ProductItem = {
     name: string;
     quantity: string;
-    unitPrice: string;
     notes: string;
-    discount: string;
 };
 
-const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
+const DetailStockScreen = ({ navigation }: { navigation: any }) => {
+    const route = useRoute();
+    const { key, code } = route.params as any;
+
     const [processData, setProcessData] = useState(false);
     const [selectedType, setSelectedType] = useState("General");
 
@@ -33,37 +34,38 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
     const [categoryName, setCategoryName] = useState("");
     const [categoryOptions, setCategoryOptions] = useState<SelectionItem[]>([]);
 
-    const [customer, setCustomer] = useState('');
-    const [customerName, setCustomerName] = useState('');
-    const [customerOptions, setCustomerOptions] = useState<SelectionItem[]>([]);
+    const [deliverTo, setDeliverTo] = useState('');
+    const [deliverToName, setDeliverToName] = useState('');
+    const [deliverToOptions, setDeliverToOptions] = useState<SelectionItem[]>([]);
 
-    const [supplier, setSupplier] = useState('');
-    const [supplierName, setSupplierName] = useState('');
-    const [supplierOptions, setSupplierOptions] = useState<SelectionItem[]>([]);
+    const [receiveFrom, setReceiveFrom] = useState('');
+    const [receiveFromName, setReceiveFromName] = useState('');
+    const [receiveFromOptions, setReceiveFromOptions] = useState<SelectionItem[]>([]);
 
-    const [currency, setCurrency] = useState('');
-    const [currencyName, setCurrencyName] = useState('');
-    const [currencyOptions, setCurrencyOptions] = useState<SelectionItem[]>([]);
+    const [movementType, setMovementType] = useState('IN');
+    const [movementTypeName, setMovementTypeName] = useState('IN');
+    const movementTypeOptions = [{'pkkey':'IN', 'name':'IN'}, {'pkkey':'OUT', 'name':'OUT'}];
 
-    const [paymentTerm, setPaymentTerm] = useState('');
-    const [paymentTermName, setPaymentTermName] = useState('');
-    const [paymentTermOptions, setPaymentTermOptions] = useState<SelectionItem[]>([]);
-
-    const [project, setProject] = useState("");
-    const [paymentInstruction, setPaymentInstruction] = useState("");
-    const [shipping, setShipping] = useState("");
+    const [purpose, setPurpose] = useState("");
     const [remark, setRemark] = useState("");
-    const [skipValidator, setSkipValidator] = useState(false);
-
     const [attachments, setAttachments] = useState<any[]>([]);
+
+    const [comments, setComments] = useState("");
+    const [workflowLogs, setWorkflowLogs] = useState([]);
+    const [currentAttachment, setCurrentAttachment] = useState<AttachmentsProps[]>([]);
 
     // Products Part
     const [products, setProducts] = useState<ProductItem[]>([
-        { name: '', quantity: '', unitPrice: '', notes: '', discount: '' },
+        { name: '', quantity: '', notes: '' },
     ]);
-    const [productOptions, setProductOption] = useState<SelectionItem[]>([]);
 
     const [focusedDropdownIndex, setFocusedDropdownIndex] = useState<number | null>(null);
+
+    const productOptions = [
+        { label: 'AB_ACPU', value: 'AB_ACPU' },
+        { label: 'AB_C302ST', value: 'AB_C302ST' },
+        { label: 'CAC-ACPU', value: 'CAC-ACPU' }
+    ];
 
     useEffect(() => {
         (async () => {
@@ -73,16 +75,27 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
         })();
     }, []);
 
-    const calculateAmount = (quantity: string, price: string, discount: string) => {
-        const q = parseFloat(quantity) || 0;
-        const p = parseFloat(price) || 0;
-        const d = parseFloat(discount) || 0;
-        const amount = q * p * (1 - d / 100);
+    const pickFiles = async () => {
+        try {
+            const options: ImageLibraryOptions = {
+                mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
+                selectionLimit: 0,  // 0 means unlimited selection
+                includeBase64: false, // Optional: if you need base64 data
+            };
 
-        return new Intl.NumberFormat('en-US', { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
-        }).format(amount);
+            launchImageLibrary(options, (response) => {
+                if (response.didCancel) {
+                    console.log('User cancelled picker');
+                } else if (response.errorCode) {
+                    console.error('ImagePicker Error: ', response.errorMessage);
+                } else {
+                    const picked: Asset[] = response.assets ?? [];
+                    setAttachments((prev) => [...prev, ...picked]);
+                }
+            });
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const fetchedSelectionAPI = async(selectedUser: any) => {
@@ -109,10 +122,9 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
             // customer list
             await axios.get( 
                 `${IPAddress}/api/dashboard/getCustomer` 
-            ).then(async response => {
-                
+            ).then(async response => {  
                 const responseData=response.data;
-                setCustomerOptions(responseData);
+                setDeliverToOptions(responseData);
                 
             }).catch(error => {
                 setProcessData(false);
@@ -123,35 +135,8 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
             await axios.get( 
                 `${IPAddress}/api/dashboard/getSupplier` 
             ).then(async response => {
-                
                 const responseData=response.data;
-                setSupplierOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // currency list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getCurrency` 
-            ).then(async response => {
-                
-                const responseData=response.data;
-                setCurrencyOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // payment term list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getPaymentTerms` 
-            ).then(async response => {
-                
-                const responseData=response.data;
-                setPaymentTermOptions(responseData);
+                setReceiveFromOptions(responseData);
                 
             }).catch(error => {
                 setProcessData(false);
@@ -162,21 +147,8 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
             await axios.get( 
                 `${IPAddress}/api/dashboard/getMRQCategory` 
             ).then(async response => {
-                
                 const responseData=response.data;
                 setCategoryOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // product list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/productCRM`
-            ).then(async response => {
-                const responseData=response.data;
-                setProductOption(responseData);
                 
             }).catch(error => {
                 setProcessData(false);
@@ -191,31 +163,154 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
-    const pickFiles = async () => {
-        try {
-            const options: ImageLibraryOptions = {
-                mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
-                selectionLimit: 0,  // 0 means unlimited selection
-                includeBase64: false, // Optional: if you need base64 data
-            };
-
-            launchImageLibrary(options, (response) => {
-                if (response.didCancel) {
-                    console.log('User cancelled picker');
-                } else if (response.errorCode) {
-                    console.error('ImagePicker Error: ', response.errorMessage);
-                } else {
-                    const picked: Asset[] = response.assets ?? [];
-                    setAttachments((prev) => [...prev, ...picked]);
-                }
-            });
-        } catch (err) {
-            console.error(err);
-        }
+    const showWorkflowLogCard = ({ item }: { item: WorkflowLogProps }) => {
+        return (
+            <TouchableOpacity onPress={() => {
+                
+            }} >
+                <WorkflowLogCard 
+                    pkkey={item.pkkey} 
+                    logDetail={item.logDetail} 
+                    lastUpdatedDate={item.lastUpdatedDate} 
+                    lastUpdatedBy={item.lastUpdatedBy}              
+                />
+            </TouchableOpacity>
+        );
     };
 
-    const submitAddMaterial = async () => {
-        
+    const submitAddStock = async (
+        requestID: any, 
+        category: any,
+        movementType: any,
+        receiveFrom: any,
+        deliverTo: any,
+        purpose: any,
+        remark: any,
+        products: any,
+        attachments: any
+    ) => {
+
+        try {
+            const smqRequest = {
+                Id: 0,
+                RequesterID: requestID,
+                ValidatorRemark: null,
+                ApproverRemark: null,
+                ImplementerRemark: null,
+
+                // Example requester list (adapt to your state)
+                RequesterList: [
+                    {
+                    Id: requestID,
+                    BranchID: 0,
+                    TimeZoneID: 0,
+                    UserName: null,
+                    Password: null,
+                    Name: "JASON CHEW", // <- you can pass from state
+                    Email: "jasonchew@asis-technologies.com",
+                    Department: null,
+                    Role: null,
+                    Superior: null,
+                    IsActive: true,
+                    IsEnable: true,
+                    IsVerified: false,
+                    Salt: null,
+                    EncryptedPassword: null,
+                    CreatedBy: null,
+                    CreatedOn: null,
+                    LastUpdatedBy: null,
+                    LastUpdatedOn: null,
+                    }
+                ],
+
+                ValidatorIDList: null,
+                ApproverList: null,
+                ImplementerList: null,
+
+                // map products array into expected structure
+                ProductList: products.map((p: { productID: any; productName: any; sku: any; quantity: any; description: any; notes: any; }) => ({
+                    Id: 0,
+                    BranchID: 0,
+                    SMQID: 0,
+                    ProductID: p.productID,
+                    ProductName: p.productName ?? null,
+                    SKU: p.sku ?? null,
+                    StockOnHand: null,
+                    Quantity: p.quantity,
+                    Description: p.description ?? null,
+                    Notes: p.notes ?? null,
+                    Location: null,
+                    LocationName: null,
+                    UnitPrice: null,
+                    Discount: null,
+                    Amount: null,
+                    CreatedBy: null,
+                    CreatedOn: "0001-01-01T00:00:00",
+                    LastUpdatedBy: null,
+                    LastUpdatedOn: null,
+                })),
+
+                UploadAttachmentList: attachments,  // must match SMQ_Attachment[] shape
+                RequesterAttachment: null,
+                WorkflowStatus: 1,
+                KeyWord: null,
+
+                SMQDetail: {
+                    Id: 0,
+                    BranchID: 0,
+                    SMQCode: null,
+                    Requester: requestID,
+                    Category: category,
+                    MovementType: movementType,
+                    ReceiveFrom: receiveFrom,
+                    DeliverTo: deliverTo,
+                    Purpose: purpose,
+                    PTRID: null,
+                    PMXID: null,
+                    SO: null,
+                    RMA: null,
+                    ReceiverSignature: null,
+                    DelivererSignature: null,
+                    Remark: remark,
+                    ValidatorRemark: null,
+                    ApproverRemark: null,
+                    ImplementerRemark: null,
+                    SKIPValidator: false,
+                    Status: 0,
+                    IsValidateNotificationSent: false,
+                    ValidateNotificationSentDate: null,
+                    IsApprovalNotificationSent: false,
+                    ApprovalNotificationSentDate: null,
+                    IsAcceptNotificationSent: false,
+                    AcceptNotificationSentDate: null,
+                    CreatedBy: null,
+                    CreatedOn: null,
+                    LastUpdatedBy: null,
+                    LastUpdatedOn: null,
+                },
+
+                SMQList: null,
+                Comment: null,
+                CommentDetails: null,
+                UserColumn: null,
+                UserID: 0,
+                UserName: null,
+            };
+
+            // // 🚀 POST request
+            // const response = await axios.post(
+            //     "https://your-api-server.com/api/smq/submit",
+            //     smqRequest,
+            //     {
+            //         headers: { "Content-Type": "application/json" },
+            //     }
+            // );
+
+            // console.log("✅ Submitted successfully:", response.data);
+
+        } catch (error: any) {
+            console.error("❌ Submission failed:", error.message);
+        }
     }
 
     return (
@@ -223,14 +318,8 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
             
             <View style={{ flex: 1 }}>
-                <HeaderBar title={`Add Material Request: `} checkBackBttn={true} />
+                <HeaderBar title={code} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
-
-                {processData ? (
-                    <View style={{ alignSelf: "center", flex: 0.92, }}>
-                        <LoadingAnimation />
-                    </View>
-                ) : (
 
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -264,8 +353,6 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                     </Pressable>
                                     <Pressable 
                                         style={[ButtonCSS.SegmentedButton, {
-                                            borderTopRightRadius: 20, 
-                                            borderBottomRightRadius: 20, 
                                             backgroundColor: selectedType=="Products" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
                                         }]}
                                         onPress={()=> {
@@ -274,11 +361,19 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                     >
                                         <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="Products" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>Products</Text>
                                     </Pressable>
+                                    <Pressable 
+                                        style={[ButtonCSS.SegmentedButton, {
+                                            borderTopRightRadius: 20, 
+                                            borderBottomRightRadius: 20, 
+                                            backgroundColor: selectedType=="More" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
+                                        }]}
+                                        onPress={()=> {
+                                            setSelectedType("More");
+                                        }}
+                                    >
+                                        <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="More" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>More Info</Text>
+                                    </Pressable>
                                 </View>
-
-                                {/* <View style={{flexDirection: "column", marginTop: 0}}>
-                                    <Text style={AddItemScreenCSS.TextTitleFont}>Please fill in the required fields:</Text>
-                                </View> */}
 
                                 {(selectedType=="General") ? (
                                 <>
@@ -314,63 +409,29 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                     />
                                 </View>
 
-                                <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                    </View>
-                                    <Dropdown
-                                        style={AddItemScreenCSS.dropdown}
-                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                        containerStyle={AddItemScreenCSS.listContainerStyle}
-                                        activeColor={COLORS.primaryVeryLightGreyHex}
-                                        data={categoryOptions}
-                                        search
-                                        searchPlaceholder="Search Category..."
-                                        labelField="name"
-                                        valueField="pkkey"
-                                        placeholder={categoryName || 'Select Category'}
-                                        value={category}
-                                        onChange={item => {
-                                            setCategory(item.pkkey);
-                                            setCategoryName(item.name);
-                                        }}
-                                        // performance tweaks:
-                                        maxHeight={300}
-                                        flatListProps={{
-                                            initialNumToRender: 20,
-                                            windowSize: 10,
-                                        }}
-                                    />
-                                </View>
-
                                 <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
                                     <View style={{ flex: 1, marginRight: 10 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Customer</Text>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
                                             <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                         </View>
                                         <Dropdown
-                                            style={[
-                                                AddItemScreenCSS.dropdown,
-                                            ]}
+                                            style={AddItemScreenCSS.dropdown}
                                             placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                             selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
                                             inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
                                             containerStyle={AddItemScreenCSS.listContainerStyle}
                                             activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={customerOptions}
+                                            data={categoryOptions}
                                             search
-                                            searchPlaceholder="Search customer..."
+                                            searchPlaceholder="Search Category..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={customerName || 'Select customer'}
-                                            value={customer}
+                                            placeholder={categoryName || 'Select Category'}
+                                            value={category}
                                             onChange={item => {
-                                                setCustomer(item.pkkey);
-                                                setCustomerName(item.name);
+                                                setCategory(item.pkkey);
+                                                setCategoryName(item.name);
                                             }}
                                             // performance tweaks:
                                             maxHeight={300}
@@ -383,7 +444,41 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
 
                                     <View style={{ flex: 1 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Supplier</Text>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Movement Type</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                        </View>
+                                        <Dropdown
+                                            style={AddItemScreenCSS.dropdown}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={movementTypeOptions}
+                                            search
+                                            searchPlaceholder="Search..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={movementTypeName || 'Select'}
+                                            value={movementType}
+                                            onChange={item => {
+                                                setMovementType(item.pkkey);
+                                                setMovementTypeName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+
+                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
+                                     <View style={{ flex: 1, marginRight: 10 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Receive From</Text>
                                             <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                         </View>
                                         <Dropdown
@@ -395,69 +490,23 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                             inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
                                             containerStyle={AddItemScreenCSS.listContainerStyle}
                                             activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={supplierOptions}
+                                            data={receiveFromOptions}
                                             search
-                                            searchPlaceholder="Search supplier..."
+                                            searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={supplierName || 'Select supplier'}
-                                            value={supplier}
+                                            placeholder={receiveFromName || 'Select...'}
+                                            value={receiveFrom}
                                             onChange={item => {
-                                                setSupplier(item.pkkey);
-                                                setSupplierName(item.name);
-                                            }}
-                                            // performance tweaks:
-                                            maxHeight={300}
-                                            flatListProps={{
-                                                initialNumToRender: 20,
-                                                windowSize: 10,
-                                            }}
-                                        />
-                                    </View>
-                                </View>
 
-                                <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Project</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                    </View>
-                                    <TextInput
-                                        label=""
-                                        mode="outlined"
-                                        multiline
-                                        numberOfLines={3}
-                                        value={project}
-                                        onChangeText={setProject}
-                                        style={AddItemScreenCSS.InputTextArea}
-                                        placeholder="Enter project description here"
-                                    />
-                                </View>
+                                                // Snackbar.show({
+                                                //     text: "key: "+item.pkkey.toString(),
+                                                //     duration: Snackbar.LENGTH_LONG,
+                                                // });
+                                                console.log(item.pkkey);
 
-                                {/* Currency and Payment Terms in one row */}
-                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
-                                    {/* Currency Input */}
-                                    <View style={{ flex: 1, marginRight: 10 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Currency</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <Dropdown
-                                            style={AddItemScreenCSS.dropdown}
-                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                            containerStyle={AddItemScreenCSS.listContainerStyle}
-                                            activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={currencyOptions}
-                                            search
-                                            searchPlaceholder="Search Currency..."
-                                            labelField="name"
-                                            valueField="pkkey"
-                                            placeholder={currencyName || 'Select Currency'}
-                                            value={currency}
-                                            onChange={item => {
-                                                setCurrency(item.pkkey);
-                                                setCurrencyName(item.name);
+                                                setReceiveFrom(item.pkkey);
+                                                setReceiveFromName(item.name);
                                             }}
                                             // performance tweaks:
                                             maxHeight={300}
@@ -468,29 +517,30 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                         />
                                     </View>
 
-                                    {/* Payment Terms Input */}
                                     <View style={{ flex: 1 }}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Payment Terms</Text>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Deliver To</Text>
                                             <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                         </View>
                                         <Dropdown
-                                            style={AddItemScreenCSS.dropdown}
+                                            style={[
+                                                AddItemScreenCSS.dropdown,
+                                            ]}
                                             placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                             selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
                                             inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
                                             containerStyle={AddItemScreenCSS.listContainerStyle}
                                             activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={paymentTermOptions}
+                                            data={deliverToOptions}
                                             search
-                                            searchPlaceholder="Search Payment Terms..."
+                                            searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={paymentTermName || 'Select Payment Terms'}
-                                            value={paymentTerm}
+                                            placeholder={deliverToName || 'Select....'}
+                                            value={deliverTo}
                                             onChange={item => {
-                                                setPaymentTerm(item.pkkey);
-                                                setPaymentTermName(item.name);
+                                                setDeliverTo(item.pkkey);
+                                                setDeliverToName(item.name);
                                             }}
                                             // performance tweaks:
                                             maxHeight={300}
@@ -501,36 +551,20 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                         />
                                     </View>
                                 </View>
-                                
-                                <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Payment Instruction</Text>
-                                    </View>
-                                    <TextInput
-                                        label=""
-                                        mode="outlined"
-                                        multiline
-                                        numberOfLines={5}
-                                        value={paymentInstruction}
-                                        onChangeText={setPaymentInstruction}
-                                        style={AddItemScreenCSS.InputTextArea}
-                                        placeholder="Enter Payment Instruction here"
-                                    />
-                                </View>
 
                                 <View style={{ marginTop: 10 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Shipping</Text>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Purpose</Text>
                                     </View>
                                     <TextInput
                                         label=""
                                         mode="outlined"
                                         multiline
                                         numberOfLines={5}
-                                        value={shipping}
-                                        onChangeText={setShipping}
-                                        style={AddItemScreenCSS.InputTextArea}
-                                        placeholder="Enter Shipping here"
+                                        value={purpose}
+                                        onChangeText={setPurpose}
+                                        style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
+                                        placeholder="Enter Purpose here"
                                     />
                                 </View>
 
@@ -545,29 +579,16 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                         numberOfLines={5}
                                         value={remark}
                                         onChangeText={setRemark}
-                                        style={AddItemScreenCSS.InputTextArea}
+                                        style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
                                         placeholder="Enter Remark here"
                                     />
-                                </View>
-
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
-                                    <View style={AddItemScreenCSS.CheckboxCSS}>
-                                        <Checkbox
-                                            status={skipValidator ? 'checked' : 'unchecked'}
-                                            onPress={() => setSkipValidator(!skipValidator)}
-                                        />
-                                    </View>
-                                    <Text style={[AddItemScreenCSS.TextInputFont, { marginLeft: 8 }]}>
-                                        Skip Validator
-                                    </Text>
                                 </View>
 
                                 {/* ── Attach Files Section ──────────────────────────────────────── */}
                                 <View style={{ marginTop: 16 }}>
                                     {/* (a) Button to open document picker */}
                                     <TouchableOpacity
-                                        onPress={()=>pickFiles()}
-                                        // onPress={pickFiles}
+                                        onPress={pickFiles}
                                         style={{
                                         paddingVertical: 12,
                                         paddingHorizontal: 16,
@@ -579,29 +600,57 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
                                     </TouchableOpacity>
 
+                                    {/* (b) Show a list of picked files, each with a “Remove” control */}
                                     {attachments.map((file, idx) => (
-                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                                        {file.type?.startsWith('image/') && (
-                                            <Image
-                                                source={{ uri: file.uri }}
-                                                style={{ width: 50, height: 50, marginRight: 8, borderRadius: 4 }}
-                                            />
-                                        )}
+                                        <View
+                                        key={idx}
+                                        style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            marginTop: 8,
+                                            padding: 8,
+                                            backgroundColor: '#F5F5F5',
+                                            borderRadius: 4,
+                                        }}
+                                        >
+                                        {/* Show the file name (truncate if too long) */}
+                                        <Text
+                                            style={{ flex: 1, fontSize: 14 }}
+                                            numberOfLines={1}
+                                            ellipsizeMode="middle"
+                                        >
+                                            {file.name ?? 'Unknown file'}
+                                        </Text>
 
-                                        {file.type?.startsWith('video/') && (
-                                            <MaterialCommunityIcons name="video" size={40} color="gray" style={{ marginRight: 8 }} />
-                                        )}
-                                        
-                                        <Text style={{ flex: 1 }}>{file.fileName ?? 'Unnamed'}</Text>
-                                        <TouchableOpacity onPress={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}>
-                                            <Text style={{ color: 'red' }}>Remove</Text>
+                                        {/* “Remove” button to drop this attachment */}
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                            setAttachments(prev => prev.filter((_, i) => i !== idx));
+                                            }}
+                                            style={{ paddingHorizontal: 8, paddingVertical: 4 }}
+                                        >
+                                            <Text style={{ color: 'red', fontSize: 14 }}>Remove</Text>
                                         </TouchableOpacity>
-                                    </View>
+                                        </View>
                                     ))}
                                 </View>
-
+                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
+                                    submitAddStock(
+                                        requester,
+                                        category,
+                                        movementType,
+                                        receiveFrom,
+                                        deliverTo,
+                                        purpose,
+                                        remark,
+                                        products,
+                                        attachments,
+                                    ) 
+                                }}>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>
+                                </TouchableOpacity>
                                 </>
-                                ) : (
+                                ) : (selectedType=="Products") ? (
                                 <>
                                 {products.map((item, index) => (
                                     <View key={index} style={{ marginTop: 20, borderBottomWidth: 1, borderColor: '#ccc', paddingBottom: 10 }}>
@@ -614,7 +663,6 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                             placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                             selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
                                             inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                            activeColor={COLORS.primaryVeryLightGreyHex}
                                             data={productOptions}
                                             search
                                             maxHeight={200}
@@ -633,36 +681,19 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                             }}
                                         />
 
-                                        <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                                            <View style={{ flex: 1, marginRight: 10 }}>
-                                                <Text style={AddItemScreenCSS.TextInputFont}>Quantity</Text>
-                                                <TextInput
-                                                mode="outlined"
-                                                keyboardType="numeric"
-                                                value={item.quantity}
-                                                onChangeText={(text) => {
-                                                    const updated = [...products];
-                                                    updated[index].quantity = text;
-                                                    setProducts(updated);
-                                                }}
-                                                placeholder="0"
-                                                />
-                                            </View>
-
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={AddItemScreenCSS.TextInputFont}>Unit Price</Text>
-                                                <TextInput
-                                                mode="outlined"
-                                                keyboardType="numeric"
-                                                value={item.unitPrice}
-                                                onChangeText={(text) => {
-                                                    const updated = [...products];
-                                                    updated[index].unitPrice = text;
-                                                    setProducts(updated);
-                                                }}
-                                                placeholder="0.00"
-                                                />
-                                            </View>
+                                        <View style={{ flex: 1, marginTop: 10 }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Quantity</Text>
+                                            <TextInput
+                                            mode="outlined"
+                                            keyboardType="numeric"
+                                            value={item.quantity}
+                                            onChangeText={(text) => {
+                                                const updated = [...products];
+                                                updated[index].quantity = text;
+                                                setProducts(updated);
+                                            }}
+                                            placeholder="0"
+                                            />
                                         </View>
 
                                         <View style={{ marginTop: 10 }}>
@@ -672,38 +703,12 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                                 multiline
                                                 numberOfLines={3}
                                                 value={item.notes}
-                                                style={AddItemScreenCSS.InputTextArea}
                                                 onChangeText={(text) => {
-                                                    const updated = [...products];
-                                                    updated[index].notes = text;
-                                                    setProducts(updated);
+                                                const updated = [...products];
+                                                updated[index].notes = text;
+                                                setProducts(updated);
                                                 }}
                                                 placeholder="Enter any notes"
-                                            />
-                                        </View>
-
-                                        <View style={{ marginTop: 10 }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Discount (%)</Text>
-                                            <TextInput
-                                            mode="outlined"
-                                            keyboardType="numeric"
-                                            value={item.discount}
-                                            onChangeText={(text) => {
-                                                const updated = [...products];
-                                                updated[index].discount = text;
-                                                setProducts(updated);
-                                            }}
-                                            placeholder="0"
-                                            />
-                                        </View>
-
-                                        <View style={{ marginTop: 10 }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Amount {currency!="" ? ("("+currency+")") : ("")}</Text>
-                                            <TextInput
-                                            mode="outlined"
-                                            value={calculateAmount(item.quantity, item.unitPrice, item.discount)}
-                                            editable={false}
-                                            placeholder="0.00"
                                             />
                                         </View>
 
@@ -724,25 +729,73 @@ const AddMaterialScreen = ({ navigation }: { navigation: any }) => {
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
-                                        setProducts([...products, { name: '', quantity: '', unitPrice: '', notes: '', discount: '' }]);
+                                        setProducts([...products, { name: '', quantity: '',  notes: '' }]);
                                     }}
                                     >
                                     <Text style={AddItemScreenCSS.AddItemText}>Add Product</Text>
                                 </TouchableOpacity>
-                                </>
-                                )}
-
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Done")}}>
+                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
+                                    submitAddStock(
+                                        requester,
+                                        category,
+                                        movementType,
+                                        receiveFrom,
+                                        deliverTo,
+                                        purpose,
+                                        remark,
+                                        products,
+                                        attachments,
+                                    ) 
+                                }}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>
                                 </TouchableOpacity>
+                                </>
+                                ) : (
+                                <View style={{flex: 1}}>
+
+                                <View style={{ marginTop: 20, }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <FlatList 
+                                            // scrollEnabled
+                                            scrollEnabled={false}
+                                            // style={{height: 250,}}
+                                            data={workflowLogs} 
+                                            keyExtractor={(item: any) => item.pkkey}
+                                            renderItem={showWorkflowLogCard} 
+                                        />
+                                    </View>
+                                </View>
+
+                                <View style={{ marginTop: 30 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Comment</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        multiline
+                                        numberOfLines={5}
+                                        value={comments}
+                                        onChangeText={setComments}
+                                        style={AddItemScreenCSS.InputTextArea}
+                                        placeholder="Write your comment..."
+                                    />
+                                </View>
+
+                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Send Comment")}}>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Send Comment </Text>
+                                </TouchableOpacity>
+                                </View>
+                                )}
                             </View>
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
-
-                )}
             </View>
         </View>
     );
 }
-export default AddMaterialScreen;
+export default DetailStockScreen;

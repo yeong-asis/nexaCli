@@ -7,8 +7,12 @@ import { AddItemScreenCSS, defaultCSS, LoginManagementCSS } from '../../../theme
 import { BACKGROUNDCOLORCODE, COLORS } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
+import { useRoute } from '@react-navigation/native';
 
-const AddTaskScreen = ({ navigation }: { navigation: any }) => {
+const TaskDetailScreen = ({ navigation }: { navigation: any }) => {
+    const route = useRoute();
+        const { key, code } = route.params as any;
+        
     const [processData, setProcessData] = useState(false);
     // const [selectedType, setSelectedType] = useState("Pending");
 
@@ -52,7 +56,7 @@ const AddTaskScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
-    const createDTS = async(title: any, description: any, remark: any) => {
+    const editTask = async(title: any, description: any, remark: any) => {
         if(title==""){
             settitleHelperText(true);
         }else{
@@ -80,7 +84,7 @@ const AddTaskScreen = ({ navigation }: { navigation: any }) => {
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
             
             <View style={{ flex: 1 }}>
-                <HeaderBar title={`Create DTS: `} checkBackBttn={true} />
+                <HeaderBar title={code} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
 
                 <KeyboardAvoidingView
@@ -100,10 +104,6 @@ const AddTaskScreen = ({ navigation }: { navigation: any }) => {
                                 borderRadius: 16,
                                 overflow: 'hidden',
                             }]}>
-                                <View style={{flexDirection: "column", marginTop: 0}}>
-                                    <Text style={AddItemScreenCSS.TextTitleFont}>Please fill in the required fields:</Text>
-                                </View>
-
                                 <View style={{flexDirection: "column", marginTop: 10}}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Title</Text>
@@ -215,8 +215,8 @@ const AddTaskScreen = ({ navigation }: { navigation: any }) => {
                                     ))}
                                 </View>
 
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {createDTS(title, description, remark)}}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Create </Text>
+                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {editTask(title, description, remark)}}>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -226,4 +226,4 @@ const AddTaskScreen = ({ navigation }: { navigation: any }) => {
         </View>
     );
 }
-export default AddTaskScreen;
+export default TaskDetailScreen;

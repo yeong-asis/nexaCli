@@ -22,6 +22,10 @@ import AddJobScreen from './pages/screens/Jobs/AddJobScreen';
 import JobDetailScreen from './pages/screens/Jobs/DetailJobScreen';
 import StockListScreen from './pages/screens/Workflows/MainStockScreen';
 import AddStockScreen from './pages/screens/Workflows/AddStockScreen';
+import DetailStockScreen from './pages/screens/Workflows/DetailStockScreen';
+import TaskListScreen from './pages/screens/DailyTask/MainTaskScreen';
+import AddTaskScreen from './pages/screens/DailyTask/AddTaskScreen';
+import TaskDetailScreen from './pages/screens/DailyTask/DetailTaskScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -71,10 +75,15 @@ const App = () => {
           <Stack.Screen name="DetailMaterial" component={MaterialDetailScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="MainStock" component={StockListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddStock" component={AddStockScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="DetailStock" component={DetailStockScreen} options={{animation: 'slide_from_bottom'}} />
           
           <Stack.Screen name="MainJob" component={JobListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="AddJob" component={AddJobScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="DetailJob" component={JobDetailScreen} options={{animation: 'slide_from_bottom'}} />
+
+          <Stack.Screen name="MainTask" component={TaskListScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="AddTask" component={AddTaskScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="DetailTask" component={TaskDetailScreen} options={{animation: 'slide_from_bottom'}} />
         </Stack.Navigator>
       </NavigationContainer>
     )}

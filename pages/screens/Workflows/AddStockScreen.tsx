@@ -49,14 +49,10 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
     const [products, setProducts] = useState<ProductItem[]>([
         { name: '', quantity: '', notes: '' },
     ]);
+    const [productOptions, setProductOption] = useState<SelectionItem[]>([]);
+
 
     const [focusedDropdownIndex, setFocusedDropdownIndex] = useState<number | null>(null);
-
-    const productOptions = [
-        { label: 'AB_ACPU', value: 'AB_ACPU' },
-        { label: 'AB_C302ST', value: 'AB_C302ST' },
-        { label: 'CAC-ACPU', value: 'CAC-ACPU' }
-    ];
 
     useEffect(() => {
         (async () => {
@@ -146,6 +142,18 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                 console.log(error);
             });
 
+            // product list
+            await axios.get( 
+                `${IPAddress}/api/dashboard/productCRM`
+            ).then(async response => {
+                const responseData=response.data;
+                setProductOption(responseData);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
             setProcessData(false);
 
         }catch (error: any) {
@@ -163,43 +171,131 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
         purpose: any,
         remark: any,
         products: any,
+        attachments: any
     ) => {
+        const checkUserFullName = await AsyncStorage.getItem('FullName') ?? "";
+        const checkUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const todayDate = new Date().toISOString();
 
-        // console.log(products)
+        try {
+            const smqRequest = {
+                Id: 0,
+                RequesterID: requestID,
+                ValidatorRemark: null,
+                ApproverRemark: null,
+                ImplementerRemark: null,
 
-        // Snackbar.show({
-        //     text: "receiveFrom: "+receiveFrom,
-        //     duration: Snackbar.LENGTH_LONG,
-        // });
+                RequesterList: [
+                    {
+                    Id: requestID,
+                    BranchID: 0,
+                    TimeZoneID: 0,
+                    UserName: null,
+                    Password: null,
+                    Name: checkUserFullName,
+                    Email: checkUserEmail,
+                    Department: null,
+                    Role: null,
+                    Superior: null,
+                    IsActive: true,
+                    IsEnable: true,
+                    IsVerified: false,
+                    Salt: null,
+                    EncryptedPassword: null,
+                    CreatedBy: null,
+                    CreatedOn: null,
+                    LastUpdatedBy: null,
+                    LastUpdatedOn: null,
+                    }
+                ],
 
+                ValidatorIDList: null,
+                ApproverList: null,
+                ImplementerList: null,
 
-        // const smqRequest: SMQRequest = {
-        //     requesterID: requestID,
-        //     category: category,
-        //     movementType: movementType,
-        //     approverList: [],
-        //     implementerList: [],
-        //     productList: [product],
-        //     uploadAttachmentList: [attachment],
-        //     workflowStatus: 0,
-        //     smqDetail: smq,
-        //     smqList: [smq],
-        // };
+                ProductList: products.map((p: { productID: any; productName: any; sku: any; quantity: any; description: any; notes: any; }) => ({
+                    Id: 0,
+                    BranchID: 0,
+                    SMQID: 0,
+                    ProductID: p.productID,
+                    ProductName: p.productName ?? null,
+                    SKU: p.sku ?? null,
+                    StockOnHand: null,
+                    Quantity: p.quantity,
+                    Description: p.description ?? null,
+                    Notes: p.notes ?? null,
+                    Location: null,
+                    LocationName: null,
+                    UnitPrice: null,
+                    Discount: null,
+                    Amount: null,
+                    CreatedBy: null,
+                    CreatedOn: todayDate,
+                    LastUpdatedBy: null,
+                    LastUpdatedOn: null,
+                })),
 
-        // try {
-        //     const response = await axios.post(
-        //     "https://your-api-server.com/api/smq/submit",
-        //         smqRequest,
-        //         {
-        //             headers: {
-        //             "Content-Type": "application/json",
-        //             },
-        //         }
-        //     );
-        //     console.log("✅ Submitted successfully:", response.data);
-        // } catch (error: any) {
-        //     console.error("❌ Submission failed:", error.message);
-        // }
+                UploadAttachmentList: attachments,
+                RequesterAttachment: null,
+                WorkflowStatus: 1,
+                KeyWord: null,
+
+                SMQDetail: {
+                    Id: 0,
+                    BranchID: 0,
+                    SMQCode: null,
+                    Requester: requestID,
+                    Category: category,
+                    MovementType: movementType=="IN" ? "1" : "2",
+                    ReceiveFrom: receiveFrom,
+                    DeliverTo: deliverTo,
+                    Purpose: purpose,
+                    PTRID: null,
+                    PMXID: null,
+                    SO: null,
+                    RMA: null,
+                    ReceiverSignature: null,
+                    DelivererSignature: null,
+                    Remark: remark,
+                    ValidatorRemark: null,
+                    ApproverRemark: null,
+                    ImplementerRemark: null,
+                    SKIPValidator: false,
+                    Status: 0,
+                    IsValidateNotificationSent: false,
+                    ValidateNotificationSentDate: null,
+                    IsApprovalNotificationSent: false,
+                    ApprovalNotificationSentDate: null,
+                    IsAcceptNotificationSent: false,
+                    AcceptNotificationSentDate: null,
+                    CreatedBy: null,
+                    CreatedOn: null,
+                    LastUpdatedBy: null,
+                    LastUpdatedOn: null,
+                },
+
+                SMQList: null,
+                Comment: null,
+                CommentDetails: null,
+                UserColumn: null,
+                UserID: 0,
+                UserName: null,
+            };
+
+            // // 🚀 POST request
+            // const response = await axios.post(
+            //     "https://your-api-server.com/api/smq/submit",
+            //     smqRequest,
+            //     {
+            //         headers: { "Content-Type": "application/json" },
+            //     }
+            // );
+
+            // console.log("✅ Submitted successfully:", response.data);
+
+        } catch (error: any) {
+            console.error("❌ Submission failed:", error.message);
+        }
     }
 
     return (
@@ -611,6 +707,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         purpose,
                                         remark,
                                         products,
+                                        attachments,
                                     ) 
                                 }}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>

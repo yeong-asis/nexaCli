@@ -27,26 +27,26 @@ export const UserPageList = [
         title: "Workflow",
         navigate: "WorkflowList",
     },
-    // {
-    //     id: 3,
-    //     index: 3,
-    //     icon: (
-    //         <Image
-    //             style={{ width: 80, height: 80 }}
-    //             source={require('../../assets/CRM.png')} 
-    //         />
-    //     ),
-    //     title: "CRM",
-    //     navigate: "/crmlist",
-    //     // navigate: "/messagelist",
-    // },
+    {
+        id: 3,
+        index: 3,
+        icon: (
+            <Image
+                style={{ width: 80, height: 80 }}
+                source={require('../../assets/messageIcon.png')} 
+            />
+        ),
+        title: "Daily Task",
+        navigate: "MainTask",
+        // navigate: "/messagelist",
+    },
     // {
     //     id: 4,
     //     index: 4,
     //     icon: (
     //         <Image
     //             style={{ width: 80, height: 80 }}
-    //             source={require('../assets/Report.png')} 
+    //             source={require('../assets/CRM.png')} 
     //         />
     //     ),
     //     title: "Report",

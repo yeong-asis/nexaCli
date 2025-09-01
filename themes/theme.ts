@@ -4,6 +4,7 @@ interface Color {
   primaryGreenHex: string;
   secondaryGreenHex: string;
   primaryOrangeHex: string;
+  primaryYellowHex: string;
   primaryBlackHex: string;
   primaryDarkGreyHex: string;
   secondaryDarkGreyHex: string;
@@ -34,6 +35,7 @@ export const COLORS: Color = {
   primaryGreenHex: '#31572C',
   secondaryGreenHex: '#7AAD7B',
   primaryOrangeHex: '#D17842',
+  primaryYellowHex: '#BAB513',
   primaryBlackHex: '#0C0F14',
   primaryDarkGreyHex: '#141921',
   secondaryDarkGreyHex: '#21262E',
