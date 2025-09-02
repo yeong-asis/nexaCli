@@ -31,14 +31,14 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
         const getUserID = await AsyncStorage.getItem('UserID') ?? "";
 
         try {
-            // await axios.get(
-            //     `${IPAddress}/api/dashboard/stockMov?userId=${getUserID}`
-            // ).then(async response => {
+            await axios.get(
+                `${IPAddress}/api/dashboard/stockMov?userId=${getUserID}`
+            ).then(async response => {
                 
-                // const responseData=response.data;
+                const responseData=response.data;
                 
-                const responseData = sampleWorkflowData;
-                console.log(responseData)
+                // const responseData = sampleWorkflowData;
+                // console.log(responseData)
 
                 const formattedMessages = responseData.map((item: any) => {
                     return {
@@ -67,10 +67,10 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                 }
                 setProcessData(false);
                 
-            // }).catch(error => {
-            //     setProcessData(false);
-            //     console.log(error);
-            // });
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
         
 
         }catch (error: any) {
@@ -97,6 +97,7 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                 navigation.navigate('DetailStock', {
                     key: item.pkkey, 
                     code: item.code,
+                    status: item.status
                 });
             }} >
                 <StockListCard 

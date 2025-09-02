@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 
 type ProductItem = {
+    id: string;
     name: string;
     quantity: string;
     notes: string;
@@ -46,11 +47,8 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
     const [attachments, setAttachments] = useState<any[]>([]);
 
     // Products Part
-    const [products, setProducts] = useState<ProductItem[]>([
-        { name: '', quantity: '', notes: '' },
-    ]);
+    const [products, setProducts] = useState<ProductItem[]>([ { id: '', name: '', quantity: '', notes: '' }, ]);
     const [productOptions, setProductOption] = useState<SelectionItem[]>([]);
-
 
     const [focusedDropdownIndex, setFocusedDropdownIndex] = useState<number | null>(null);
 
@@ -132,7 +130,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
 
             // category list
             await axios.get( 
-                `${IPAddress}/api/dashboard/getMRQCategory` 
+                `${IPAddress}/api/dashboard/getSMQCategory` 
             ).then(async response => {
                 const responseData=response.data;
                 setCategoryOptions(responseData);
@@ -144,7 +142,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
 
             // product list
             await axios.get( 
-                `${IPAddress}/api/dashboard/productCRM`
+                `${IPAddress}/api/dashboard/getProductList`
             ).then(async response => {
                 const responseData=response.data;
                 setProductOption(responseData);
@@ -312,9 +310,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                 >
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
-                        contentContainerStyle={{
-                            paddingVertical: 10,
-                        }}
+                        contentContainerStyle={{ paddingVertical: 10, }}
                     >
                         <View style={[LoginManagementCSS.widthAndAdjustment, LoginManagementCSS.CardShadow]}>
                             <View style={[{
@@ -626,16 +622,17 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             data={productOptions}
                                             search
                                             maxHeight={200}
-                                            labelField="label"
-                                            valueField="value"
+                                            labelField="name"
+                                            valueField="pkkey"
                                             placeholder={!item.name ? 'Select product...' : item.name}
                                             searchPlaceholder="Search products..."
-                                            value={item.name}
+                                            value={item.id}
                                             onFocus={() => setFocusedDropdownIndex(index)}
                                             onBlur={() => setFocusedDropdownIndex(null)}
                                             onChange={(option) => {
                                                 const updated = [...products];
-                                                updated[index].name = option.value;
+                                                updated[index].id = option.pkkey;
+                                                updated[index].name = option.name; 
                                                 setProducts(updated);
                                                 setFocusedDropdownIndex(null);
                                             }}
@@ -689,7 +686,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
-                                        setProducts([...products, { name: '', quantity: '',  notes: '' }]);
+                                        setProducts([...products, { id: '', name: '', quantity: '',  notes: '' }]);
                                     }}
                                     >
                                     <Text style={AddItemScreenCSS.AddItemText}>Add Product</Text>

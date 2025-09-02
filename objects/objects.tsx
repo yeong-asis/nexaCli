@@ -1,7 +1,7 @@
 import { Image, Text, View } from "react-native";
 import { IconListPicture } from "../themes/CSS";
 
-export const IPAddress = "http://192.168.0.7:7149";
+export const IPAddress = "http://192.168.0.90:7149";
 
 export const TaskMenuItems = [
     { title: "Pending Task", key: "pending" },
@@ -163,6 +163,14 @@ export interface AcknowledgeProps {
 export interface WorkflowLogProps {
     pkkey: string;
     logDetail: string;
+    lastUpdatedDate: string;
+    lastUpdatedBy: string;
+}
+
+export interface CommentLogProps {
+    pkkey: string;
+    comment: string;
+    createdBy: string;
     lastUpdatedDate: string;
     lastUpdatedBy: string;
 }

@@ -35,7 +35,7 @@ const StockListCard: React.FC<WorkflowProps> = ({
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
 
                     <Text style={[styles.TextStatus, {
-                        width: 100,
+                        width: 110,
                         textAlign: "center",
                         backgroundColor: status=="New" 
                             ? COLORS.secondaryLightGreyHex

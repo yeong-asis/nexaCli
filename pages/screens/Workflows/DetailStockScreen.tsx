@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
@@ -7,13 +7,15 @@ import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../
 import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
-import { AttachmentsProps, IPAddress, SelectionItem, WorkflowLogProps } from '../../../objects/objects';
+import { AttachmentsProps, CommentLogProps, IPAddress, SelectionItem, WorkflowLogProps } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { useRoute } from '@react-navigation/native';
 import WorkflowLogCard from '../../../objects/Cards/WorkflowLogCard';
+import CommentLogCard from '../../../objects/Cards/CommentLogCard';
 
 type ProductItem = {
+    id: string;
     name: string;
     quantity: string;
     notes: string;
@@ -21,7 +23,7 @@ type ProductItem = {
 
 const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const route = useRoute();
-    const { key, code } = route.params as any;
+    const { key, code, status } = route.params as any;
 
     const [processData, setProcessData] = useState(false);
     const [selectedType, setSelectedType] = useState("General");
@@ -44,28 +46,25 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
     const [movementType, setMovementType] = useState('IN');
     const [movementTypeName, setMovementTypeName] = useState('IN');
-    const movementTypeOptions = [{'pkkey':'IN', 'name':'IN'}, {'pkkey':'OUT', 'name':'OUT'}];
+    const movementTypeOptions = [{'pkkey':'1', 'name':'IN'}, {'pkkey':'2', 'name':'OUT'}];
 
     const [purpose, setPurpose] = useState("");
     const [remark, setRemark] = useState("");
+    const [createdDate, setCreatedDate] = useState("");
     const [attachments, setAttachments] = useState<any[]>([]);
 
     const [comments, setComments] = useState("");
     const [workflowLogs, setWorkflowLogs] = useState([]);
+    const [commentLogs, setCommentLogs] = useState([]);
     const [currentAttachment, setCurrentAttachment] = useState<AttachmentsProps[]>([]);
 
+    const [showSummary, setShowSummary] = useState(false);
+
     // Products Part
-    const [products, setProducts] = useState<ProductItem[]>([
-        { name: '', quantity: '', notes: '' },
-    ]);
+    const [products, setProducts] = useState<ProductItem[]>([]);
+    const [productOptions, setProductOption] = useState<SelectionItem[]>([]);
 
     const [focusedDropdownIndex, setFocusedDropdownIndex] = useState<number | null>(null);
-
-    const productOptions = [
-        { label: 'AB_ACPU', value: 'AB_ACPU' },
-        { label: 'AB_C302ST', value: 'AB_C302ST' },
-        { label: 'CAC-ACPU', value: 'CAC-ACPU' }
-    ];
 
     useEffect(() => {
         (async () => {
@@ -103,16 +102,55 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         // console.log(selectedUser)
 
         try {
+            // SMQ Detail
+            await axios.get( 
+                `${IPAddress}/api/dashboard/GetSMQDetail?UserId=${selectedUser}&SMQID=${key}` 
+            ).then(async response => {
+                const responseData=response.data;
+
+                setRequesterName(responseData[0].requester);
+                setRequester(responseData[0].requestID);
+                setCategory(responseData[0].category);
+                setMovementType(responseData[0].movementType);
+                setReceiveFrom(responseData[0].receiveFrom);
+                setDeliverTo(responseData[0].deliverTo);
+                setPurpose(responseData[0].purpose);
+                setRemark(responseData[0].remark);
+                setCreatedDate(responseData[0].createdOn);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
+            // SMQ Product Detail
+            await axios.get( 
+                `${IPAddress}/api/dashboard/GetSMQProductDetail?SMQID=${key}` 
+            ).then(async response => {
+                const responseData=response.data;
+                console.log(responseData)
+
+                // Transform response into the structure your component expects
+                const mappedProducts = responseData.map((p: any) => ({
+                    id: p.productID,           // must match productOptions valueField
+                    name: p.sku,       // label for display
+                    quantity: String(p.quantity),   // make sure it's string for TextInput
+                    notes: p.notes || ''
+                }));
+
+                setProducts(mappedProducts);
+
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
             // user list
             await axios.get( 
                 `${IPAddress}/api/dashboard/getUser` 
             ).then(async response => {
-                
                 const responseData=response.data;
                 setRequesterOptions(responseData);
-
-                const user = responseData.find((u: any) => u.pkkey === selectedUser);
-                setRequesterName(user?.fullName ?? '');
                 
             }).catch(error => {
                 setProcessData(false);
@@ -145,10 +183,58 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
             // category list
             await axios.get( 
-                `${IPAddress}/api/dashboard/getMRQCategory` 
+                `${IPAddress}/api/dashboard/getSMQCategory` 
             ).then(async response => {
                 const responseData=response.data;
                 setCategoryOptions(responseData);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
+            // SMQ Workflow Log
+            await axios.get( 
+                `${IPAddress}/api/dashboard/getSMQWorkflowLog?SMQID=${key}` 
+            ).then(async response => {
+                const responseData=response.data;
+                setWorkflowLogs(responseData);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
+            // SMQ Comment Log
+            await axios.get( 
+                `${IPAddress}/api/dashboard/getSMQCommentLog?SMQID=${key}` 
+            ).then(async response => {
+                const responseData=response.data;
+                setCommentLogs(responseData);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+            
+            // SMQ Comment Log
+            await axios.get( 
+                `${IPAddress}/api/dashboard/productCRM` 
+            ).then(async response => {
+                const responseData=response.data;
+                setProductOption(responseData);
+                
+            }).catch(error => {
+                setProcessData(false);
+                console.log(error);
+            });
+
+            // product list
+            await axios.get( 
+                `${IPAddress}/api/dashboard/getProductList`
+            ).then(async response => {
+                const responseData=response.data;
+                setProductOption(responseData);
                 
             }).catch(error => {
                 setProcessData(false);
@@ -171,6 +257,22 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 <WorkflowLogCard 
                     pkkey={item.pkkey} 
                     logDetail={item.logDetail} 
+                    lastUpdatedDate={item.lastUpdatedDate} 
+                    lastUpdatedBy={item.lastUpdatedBy}              
+                />
+            </TouchableOpacity>
+        );
+    };
+
+    const showCommentLogCard = ({ item }: { item: CommentLogProps }) => {
+        return (
+            <TouchableOpacity onPress={() => {
+                
+            }} >
+                <CommentLogCard 
+                    pkkey={item.pkkey} 
+                    comment={item.comment} 
+                    createdBy={item.createdBy}
                     lastUpdatedDate={item.lastUpdatedDate} 
                     lastUpdatedBy={item.lastUpdatedBy}              
                 />
@@ -634,6 +736,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
                                     ))}
                                 </View>
+                                {status=="New" ? (
                                 <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
                                     submitAddStock(
                                         requester,
@@ -647,8 +750,29 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         attachments,
                                     ) 
                                 }}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                 </TouchableOpacity>
+                                ) : (
+                                <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%",}]} onPress={() => { 
+                                        setShowSummary(true)
+                                        // Snackbar.show({
+                                        //     text: 'Approve SMQ',
+                                        //     duration: Snackbar.LENGTH_LONG,
+                                        // });
+                                    }}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width:"45%",}]} onPress={() => { 
+                                        Snackbar.show({
+                                            text: 'Reject SMQ',
+                                            duration: Snackbar.LENGTH_LONG,
+                                        });
+                                    }}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
+                                    </TouchableOpacity>
+                                </View>
+                                )}
                                 </>
                                 ) : (selectedType=="Products") ? (
                                 <>
@@ -666,16 +790,17 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             data={productOptions}
                                             search
                                             maxHeight={200}
-                                            labelField="label"
-                                            valueField="value"
+                                            labelField="name"
+                                            valueField="pkkey"
                                             placeholder={!item.name ? 'Select product...' : item.name}
                                             searchPlaceholder="Search products..."
-                                            value={item.name}
+                                            value={item.id}
                                             onFocus={() => setFocusedDropdownIndex(index)}
                                             onBlur={() => setFocusedDropdownIndex(null)}
                                             onChange={(option) => {
                                                 const updated = [...products];
-                                                updated[index].name = option.value;
+                                                updated[index].id = option.pkkey;
+                                                updated[index].name = option.name; 
                                                 setProducts(updated);
                                                 setFocusedDropdownIndex(null);
                                             }}
@@ -729,11 +854,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
-                                        setProducts([...products, { name: '', quantity: '',  notes: '' }]);
+                                        setProducts([...products, { id: '', name: '', quantity: '',  notes: '' }]);
                                     }}
                                     >
                                     <Text style={AddItemScreenCSS.AddItemText}>Add Product</Text>
                                 </TouchableOpacity>
+
+                                {status=="New" ? (
                                 <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
                                     submitAddStock(
                                         requester,
@@ -747,50 +874,159 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         attachments,
                                     ) 
                                 }}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Submit </Text>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                 </TouchableOpacity>
+                                ) : (
+                                <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%",}]} onPress={() => { 
+                                        Snackbar.show({
+                                            text: 'Approve SMQ',
+                                            duration: Snackbar.LENGTH_LONG,
+                                        });
+                                    }}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width:"45%",}]} onPress={() => { 
+                                        Snackbar.show({
+                                            text: 'Reject SMQ',
+                                            duration: Snackbar.LENGTH_LONG,
+                                        });
+                                    }}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
+                                    </TouchableOpacity>
+                                </View>
+                                )}
                                 </>
                                 ) : (
                                 <View style={{flex: 1}}>
 
-                                <View style={{ marginTop: 20, }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
+                                    {workflowLogs.length>0 ? (
+                                    <>
+                                    <View style={{ marginTop: 10, }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <FlatList 
+                                                // scrollEnabled
+                                                scrollEnabled={false}
+                                                // style={{height: 250,}}
+                                                data={workflowLogs} 
+                                                keyExtractor={(item: any) => item.pkkey}
+                                                renderItem={showWorkflowLogCard} 
+                                            />
+                                        </View>
                                     </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <FlatList 
-                                            // scrollEnabled
-                                            scrollEnabled={false}
-                                            // style={{height: 250,}}
-                                            data={workflowLogs} 
-                                            keyExtractor={(item: any) => item.pkkey}
-                                            renderItem={showWorkflowLogCard} 
+                                    <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
+                                    </>
+                                    ) : (<></>)}
+
+                                    {commentLogs.length>0 ? (
+                                    <>
+                                    <View style={{ marginTop: 10, }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}> View Comment</Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <FlatList 
+                                                // scrollEnabled
+                                                scrollEnabled={false}
+                                                // style={{height: 250,}}
+                                                data={commentLogs} 
+                                                keyExtractor={(item: any) => item.pkkey}
+                                                renderItem={showCommentLogCard} 
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
+                                    </>
+                                    ) : (<></>)}
+
+                                    <View style={{ marginTop: 30 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Comment</Text>
+                                        </View>
+                                        <TextInput
+                                            label=""
+                                            mode="outlined"
+                                            multiline
+                                            numberOfLines={5}
+                                            value={comments}
+                                            onChangeText={setComments}
+                                            style={AddItemScreenCSS.InputTextArea}
+                                            placeholder="Write your comment..."
                                         />
                                     </View>
-                                </View>
 
-                                <View style={{ marginTop: 30 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Comment</Text>
-                                    </View>
-                                    <TextInput
-                                        label=""
-                                        mode="outlined"
-                                        multiline
-                                        numberOfLines={5}
-                                        value={comments}
-                                        onChangeText={setComments}
-                                        style={AddItemScreenCSS.InputTextArea}
-                                        placeholder="Write your comment..."
-                                    />
-                                </View>
-
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Send Comment")}}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Send Comment </Text>
-                                </TouchableOpacity>
+                                    <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Send Comment")}}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Send Comment </Text>
+                                    </TouchableOpacity>
                                 </View>
                                 )}
                             </View>
+
+                            <Modal
+                                visible={showSummary}
+                                animationType="slide"
+                                transparent={true}
+                                onRequestClose={() => setShowSummary(false)}
+                            >
+                            <View style={{
+                                flex: 1,
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}>
+                                <View style={{
+                                    backgroundColor: COLORS.primaryWhiteHex,
+                                    borderRadius: 12,
+                                    padding: 20,
+                                    width: '90%',
+                                    maxHeight: '80%',
+                                }}>
+                                    <ScrollView>
+                                        <Text style={{fontWeight: 'bold', fontSize: 18, marginBottom: 10}}>Summary</Text>
+
+                                        <Text>Requester: {requesterName}</Text>
+                                        <Text>Category: {categoryName}</Text>
+                                        <Text>Movement Type: {movementTypeName}</Text>
+                                        <Text>Receive From: {receiveFromName}</Text>
+                                        <Text>Deliver To: {deliverToName}</Text>
+                                        <Text>Purpose: {purpose}</Text>
+                                        <Text>Date Requested: {createdDate}</Text>
+
+                                        <Text style={{marginTop: 10, fontWeight: 'bold'}}>Products:</Text>
+                                        {products.map((p, i) => (
+                                        <View key={i} style={{marginVertical: 5, padding: 8, borderWidth: 1, borderColor: '#ccc', borderRadius: 6}}>
+                                            <Text>Product {i+1}</Text>
+                                            <Text>Name: {p.name}</Text>
+                                            <Text>Quantity: {p.quantity}</Text>
+                                            <Text>Notes: {p.notes}</Text>
+                                        </View>
+                                        ))}
+                                    </ScrollView>
+
+                                    <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 20}}>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreyHex, width:"45%"}]} onPress={() => setShowSummary(false)}>
+                                            <Text style={AddItemScreenCSS.ButtonText}>Close</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity 
+                                            style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%"}]}
+                                            onPress={() => {
+                                                setShowSummary(false);
+                                                Snackbar.show({
+                                                text: 'Final Approve Sent!',
+                                                duration: Snackbar.LENGTH_LONG,
+                                                });
+                                                // Here you could call your API to submit final approval
+                                            }}
+                                        >
+                                            <Text style={AddItemScreenCSS.ButtonText}>Confirm</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+                            </Modal>
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
