@@ -100,7 +100,7 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                     status: item.status
                 });
             }} >
-                <StockListCard 
+                <StockListCard
                     pkkey={item.pkkey}
                     code={item.code}
                     description={item.description}

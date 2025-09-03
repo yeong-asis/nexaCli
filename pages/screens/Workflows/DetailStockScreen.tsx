@@ -13,6 +13,7 @@ import Snackbar from 'react-native-snackbar';
 import { useRoute } from '@react-navigation/native';
 import WorkflowLogCard from '../../../objects/Cards/WorkflowLogCard';
 import CommentLogCard from '../../../objects/Cards/CommentLogCard';
+import LoadingAnimation from '../../functions/LoadingAnimation';
 
 type ProductItem = {
     id: string;
@@ -271,6 +272,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
             }} >
                 <CommentLogCard 
                     pkkey={item.pkkey} 
+                    personName={item.personName}
                     comment={item.comment} 
                     createdBy={item.createdBy}
                     lastUpdatedDate={item.lastUpdatedDate} 
@@ -422,6 +424,12 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
             <View style={{ flex: 1 }}>
                 <HeaderBar title={code} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
+
+                {processData ? (
+                    <View style={{ alignSelf: "center", flex: 0.92, }}>
+                        <LoadingAnimation />
+                    </View>
+                ) : (
 
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -902,20 +910,20 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                     {workflowLogs.length>0 ? (
                                     <>
-                                    <View style={{ marginTop: 10, }}>
+                                    <View style={{ marginTop: 10,}}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
                                         </View>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        {/* <View style={{ flexDirection: 'row', alignItems: 'baseline' }}> */}
                                             <FlatList 
-                                                // scrollEnabled
                                                 scrollEnabled={false}
-                                                // style={{height: 250,}}
+                                                // scrollEnabled={true}
+                                                // style={{height: 200,}}
                                                 data={workflowLogs} 
                                                 keyExtractor={(item: any) => item.pkkey}
                                                 renderItem={showWorkflowLogCard} 
                                             />
-                                        </View>
+                                        {/* </View> */}
                                     </View>
                                     <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
                                     </>
@@ -923,15 +931,15 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                     {commentLogs.length>0 ? (
                                     <>
-                                    <View style={{ marginTop: 10, }}>
+                                    <View style={{ marginTop: 10}}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}> View Comment</Text>
                                         </View>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                             <FlatList 
-                                                // scrollEnabled
                                                 scrollEnabled={false}
-                                                // style={{height: 250,}}
+                                                // scrollEnabled={true}
+                                                // style={{height: 200,}}
                                                 data={commentLogs} 
                                                 keyExtractor={(item: any) => item.pkkey}
                                                 renderItem={showCommentLogCard} 
@@ -1030,6 +1038,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
+
+                )}
             </View>
         </View>
     );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
@@ -10,6 +10,8 @@ import axios from 'axios';
 import { IPAddress, SelectionItem } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
+import LoadingAnimation from '../../functions/LoadingAnimation';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type ProductItem = {
     id: string;
@@ -304,6 +306,12 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                 <HeaderBar title={`Add Stock Movement: `} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
 
+                {processData ? (
+                    <View style={{ alignSelf: "center", flex: 0.92, }}>
+                        <LoadingAnimation />
+                    </View>
+                ) : (
+
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
                     style={{ flex: 1 }}
@@ -559,7 +567,8 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 <View style={{ marginTop: 16 }}>
                                     {/* (a) Button to open document picker */}
                                     <TouchableOpacity
-                                        onPress={pickFiles}
+                                        onPress={()=>pickFiles()}
+                                        // onPress={pickFiles}
                                         style={{
                                         paddingVertical: 12,
                                         paddingHorizontal: 16,
@@ -571,38 +580,24 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
                                     </TouchableOpacity>
 
-                                    {/* (b) Show a list of picked files, each with a “Remove” control */}
                                     {attachments.map((file, idx) => (
-                                        <View
-                                        key={idx}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            marginTop: 8,
-                                            padding: 8,
-                                            backgroundColor: '#F5F5F5',
-                                            borderRadius: 4,
-                                        }}
-                                        >
-                                        {/* Show the file name (truncate if too long) */}
-                                        <Text
-                                            style={{ flex: 1, fontSize: 14 }}
-                                            numberOfLines={1}
-                                            ellipsizeMode="middle"
-                                        >
-                                            {file.name ?? 'Unknown file'}
-                                        </Text>
+                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                        {file.type?.startsWith('image/') && (
+                                            <Image
+                                                source={{ uri: file.uri }}
+                                                style={{ width: 50, height: 50, marginRight: 8, borderRadius: 4 }}
+                                            />
+                                        )}
 
-                                        {/* “Remove” button to drop this attachment */}
-                                        <TouchableOpacity
-                                            onPress={() => {
-                                            setAttachments(prev => prev.filter((_, i) => i !== idx));
-                                            }}
-                                            style={{ paddingHorizontal: 8, paddingVertical: 4 }}
-                                        >
-                                            <Text style={{ color: 'red', fontSize: 14 }}>Remove</Text>
+                                        {file.type?.startsWith('video/') && (
+                                            <MaterialCommunityIcons name="video" size={40} color="gray" style={{ marginRight: 8 }} />
+                                        )}
+                                        
+                                        <Text style={{ flex: 1 }}>{file.fileName ?? 'Unnamed'}</Text>
+                                        <TouchableOpacity onPress={() => setAttachments(prev => prev.filter((_, i) => i !== idx))}>
+                                            <Text style={{ color: 'red' }}>Remove</Text>
                                         </TouchableOpacity>
-                                        </View>
+                                    </View>
                                     ))}
                                 </View>
                                 </>
@@ -713,6 +708,8 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
+
+                )}
             </View>
         </View>
     );

@@ -25,6 +25,14 @@ const StockListCard: React.FC<WorkflowProps> = ({
 }) => {
     const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
+    const statusColors: Record<string, string> = {
+        New: COLORS.secondaryLightGreyHex,
+        Approved: COLORS.primaryGreenHex,
+        Accepted: COLORS.secondaryGreenHex,
+        Completed: COLORS.primaryOrangeHex,
+        Validated: COLORS.primaryYellowHex,
+    };
+
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
@@ -37,15 +45,7 @@ const StockListCard: React.FC<WorkflowProps> = ({
                     <Text style={[styles.TextStatus, {
                         width: 110,
                         textAlign: "center",
-                        backgroundColor: status=="New" 
-                            ? COLORS.secondaryLightGreyHex
-                            : status=="Completed"
-                                ? COLORS.primaryGreenHex
-                                : status=="Pending"
-                                    ? COLORS.primaryOrangeHex
-                                    : status=="Validated"
-                                        ? COLORS.primaryYellowHex
-                                        : COLORS.primaryRedHex
+                        backgroundColor: statusColors[status] || COLORS.primaryRedHex,
                     }]}>
                         {status}
                     </Text>

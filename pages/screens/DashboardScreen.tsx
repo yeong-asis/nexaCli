@@ -69,15 +69,15 @@ export const DashboardScreen = ({navigation}: any) => {
                             <View style={{flexDirection: "row", flex: 0.12, width: "70%", justifyContent: "space-between", marginTop: 20}}>
                                 <View style={{flexDirection: "column", width: "15%"}}>
                                     <Text style={defaultCSS.TextLabel}>User:</Text>
-                                    <Text style={defaultCSS.TextLabel}>Test:</Text>
-                                    {/* <Text style={defaultCSS.TextLabel}>Email</Text> */}
+                                    {/* <Text style={defaultCSS.TextLabel}>Test:</Text> */}
+                                    <Text style={defaultCSS.TextLabel}>Email</Text>
                                 </View>
                                 <View style={{flexDirection: "column", width: "75%",}}>
                                     {/* <Text style={defaultCSS.TextLabel}>Title:</Text>
                                     <Text style={defaultCSS.TextLabel}>{userPosition}</Text> */}
                                     <Text style={defaultCSS.TextLabel}>{FullName}</Text>
-                                    <Text style={defaultCSS.TextLabel}>{UserID}</Text>
-                                    {/* <Text style={defaultCSS.TextLabel}>{Email}</Text> */}
+                                    {/* <Text style={defaultCSS.TextLabel}>{UserID}</Text> */}
+                                    <Text style={defaultCSS.TextLabel}>{Email}</Text>
                                 </View>
                             </View>
                             <View style={[defaultCSS.DashboardSubContainer, {flex: 0.88, width: "100%", backgroundColor: COLORS.primaryWhiteHex,}]}>

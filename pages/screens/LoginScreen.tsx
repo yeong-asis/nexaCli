@@ -2,7 +2,7 @@ import Octicons from 'react-native-vector-icons/Octicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useState } from 'react';
-import { Dimensions, Image, Text, TextInput as TextInputs, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, StatusBar, Text, TextInput as TextInputs, TouchableOpacity, View } from 'react-native';
 import { Snackbar, TextInput } from 'react-native-paper';
 import { COLORS } from '../../themes/theme';
 import { LoginManagementCSS, ButtonCSS, defaultCSS, FooterCSS } from '../../themes/CSS';
@@ -12,9 +12,10 @@ import { ForceNewFCMToken } from '../functions/pushNotification';
 import DeviceInfo from 'react-native-device-info';
 
 const LoginScreen = ({navigation}: any) => {
+    const [processData, setProcessData] = useState(false);
     const appVersion = DeviceInfo.getVersion();
     
-    const [userName, setUserName] = useState('jasonchew@asis-technologies.com');
+    const [userName, setUserName] = useState('pakmy@asis-technologies.com');
     const [password, setPassword] = useState('Asis!234');
     const [ishide, setishide] = useState(true);
     const inputRef = React.createRef<TextInputs>();
@@ -25,11 +26,13 @@ const LoginScreen = ({navigation}: any) => {
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const CallLoginAPI = async (username: any, password: any) => {
+        setProcessData(true);
         let emtpy = false;
 
         if (username === '') {
             setusernameHelperText(true)
             emtpy = true;
+            setProcessData(false);
         } else {
             setusernameHelperText(false)
         }
@@ -37,6 +40,7 @@ const LoginScreen = ({navigation}: any) => {
         if (password === '') {
             setpasswordHelperText(true)
             emtpy = true;
+            setProcessData(false);
         } else {
             setpasswordHelperText(false)
         }
@@ -64,10 +68,12 @@ const LoginScreen = ({navigation}: any) => {
                         await AsyncStorage.setItem('FullName', responseData.result[0].fullName);
                         await AsyncStorage.setItem('Email', responseData.result[0].email);
                         navigation.navigate("Tab", { screen: 'Dashboard'});
+                        setProcessData(false);
 
                     }else{
                         setSnackbarMessage('Login failed');
                         setSnackbarVisible(true);
+                        setProcessData(false);
                     }
                     // console.log(responseData.result);
                 });
@@ -83,13 +89,31 @@ const LoginScreen = ({navigation}: any) => {
 
             }catch (error: any) {
                 console.log("Error: "+error);
+                setProcessData(false);
             }
         }
     }
 
     return (
          <View style={defaultCSS.ScreenContainer}>
-            {/* <StatusBar backgroundColor={COLORS.secondaryLightGreyHex} /> */}
+            <StatusBar backgroundColor={COLORS.secondaryLightGreyHex} />
+
+            {processData && (
+                <View style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 999,
+                }}>
+                    <ActivityIndicator size={50} color="#ffffff" />
+                    <Text style={{ marginTop: 10, color: '#ffffff' }}>Loading...</Text>
+                </View>
+            )}
 
             <KeyboardAvoidWrapper>
                 <View style={{ flex: 1}}>
@@ -159,7 +183,7 @@ const LoginScreen = ({navigation}: any) => {
                     </View>
                 </View>
             </KeyboardAvoidWrapper>
-
+            
             {/* Footer */}
             <View style={[FooterCSS.FooterContainer,]}>
                 <Text style={FooterCSS.FooterText}>Version: {appVersion}</Text>

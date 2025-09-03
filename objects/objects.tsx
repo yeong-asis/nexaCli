@@ -169,6 +169,7 @@ export interface WorkflowLogProps {
 
 export interface CommentLogProps {
     pkkey: string;
+    personName: string;
     comment: string;
     createdBy: string;
     lastUpdatedDate: string;

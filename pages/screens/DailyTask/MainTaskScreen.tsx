@@ -4,13 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { IPAddress, TaskProps } from '../../../objects/objects';
 import TaskListCard from '../../../objects/Cards/TaskListCard';
-import { ButtonCSS, defaultCSS } from '../../../themes/CSS';
+import { AddItemScreenCSS, ButtonCSS, defaultCSS } from '../../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import EmptyListContainer from '../../functions/EmptyListContainer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SampleTask, sampleTaskData } from '../../../objects/SampleJsonData';
+import Snackbar from 'react-native-snackbar';
 
 const TaskListScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -157,6 +158,14 @@ const TaskListScreen = ({ navigation }: { navigation: any }) => {
                                         onRefresh={onRefresh}
                                     />}
                                 />
+                                <TouchableOpacity style={[AddItemScreenCSS.Button, {width:"55%", marginBottom: 20}]} onPress={() => { 
+                                    Snackbar.show({
+                                        text: 'Close all task',
+                                        duration: Snackbar.LENGTH_LONG,
+                                    });
+                                }}>
+                                    <Text style={AddItemScreenCSS.ButtonText}> Close Today Case </Text>
+                                </TouchableOpacity>
                             </View>
                         ) : (
                             <View style={{alignItems:"center", justifyContent: "center", flex: 0.9,}}>

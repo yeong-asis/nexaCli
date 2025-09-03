@@ -5,6 +5,7 @@ import { COLORS } from '../../themes/theme';
 
 const CommentLogCard: React.FC<CommentLogProps> = ({
     pkkey,
+    personName,
     comment,
     createdBy,
     lastUpdatedDate,
@@ -13,13 +14,17 @@ const CommentLogCard: React.FC<CommentLogProps> = ({
 
     return (
         <View style={[styles.CardContainer, {}]}>
-            <View style={{flexDirection: "row"}}>
-                <View style={{flexDirection: "column", width: "35%"}}>
-                    <Text style={[styles.TextTitle, {}]}>User ID: {createdBy}</Text>
+            <View style={{flexDirection: "row", alignSelf: "flex-start",}}>
+                {/* <View style={{flexDirection: "column", width: "30%"}}> */}
+                <View style={{width: "30%"}}>
+                    <Text style={[styles.TextTitle, {}]}>{personName}: </Text>
                     {/* <Text style={[styles.TextDescription, {}]}>{lastUpdatedDate}</Text> */}
                 </View>
-                <View style={{width: "65%", alignSelf: "flex-start",}}>
-                    <Text style={[styles.TextTitle, {}]}>{comment}</Text>
+                <View style={{width: "40%", alignSelf: "flex-start",}}>
+                    <Text style={[styles.TextDescription, {}]}>{comment}</Text>
+                </View>
+                <View style={{width: "30%", alignSelf: "flex-end",}}>
+                    <Text style={[styles.TextTitle, {}]}>{lastUpdatedDate}</Text>
                 </View>
             </View>
         </View>
@@ -31,23 +36,19 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         width: "100%", 
         borderWidth: 0.4,
-        padding: 15,
+        padding: 10,
         marginVertical: 0,
     },
     TextTitle: {
         color: COLORS.primaryBlackHex,
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: 'bold',
-        marginVertical: 5,
         textAlign: "left",
-        textAlignVertical: "center",
     },
     TextDescription: {
         color: COLORS.primaryBlackHex,
-        fontSize: 14,
-        marginVertical: 1,
+        fontSize: 13,
         textAlign: "left",
-        textAlignVertical: "center",
         // fontWeight: "bold",
     },
 });

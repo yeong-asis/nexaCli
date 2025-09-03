@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Dimensions, Image, Platform, SafeAreaView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Clipboard, Dimensions, Image, Platform, SafeAreaView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SampleBase64Image } from '../../objects/SampleJsonData';
 import { defaultCSS, HeaderCSS, LoginManagementCSS, ProfileCSS } from '../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS } from '../../themes/theme';
@@ -9,11 +9,13 @@ import LoadingAnimation from '../functions/LoadingAnimation';
 import HeaderBar from '../functions/HeaderBar';
 import GradientBGIcon from '../../objects/GradientBGIcon';
 import Octicons from 'react-native-vector-icons/Octicons';
+import Snackbar from 'react-native-snackbar';
 
 export const ProfileScreen = ({navigation}: any) => {
     const [processData, setProcessData] = useState(false);
     const [FullName, setFullName] = useState("");
     const [Email, setEmail] = useState("");
+    const [token, setToken] = useState("");
     const [UserPosition, setUserPosition] = useState("");
     const [ICNumber, setICNumber] = useState("");
     const [FacePicBase64, setFacePicBase64] = useState("");
@@ -29,11 +31,13 @@ export const ProfileScreen = ({navigation}: any) => {
         
         const checkFullName = await AsyncStorage.getItem('FullName') ?? "";
         const checkEmail = await AsyncStorage.getItem('Email') ?? "";
+        const checkToken = await AsyncStorage.getItem('fcmtoken') ?? "";
 
         try {
             setFacePicBase64(SampleBase64Image);
             setFullName(checkFullName);
             setEmail(checkEmail);
+            setToken(checkToken);
             setProcessData(false);
 
         }catch (error: any) {
@@ -91,7 +95,20 @@ export const ProfileScreen = ({navigation}: any) => {
                             overflow: 'hidden',
                         }]}>
                             <View style={ProfileCSS.mainContainerList}>
-                                <TouchableOpacity style={ProfileCSS.ButtonContainer} onPress={async () => {}}>
+                                <TouchableOpacity style={ProfileCSS.ButtonContainer} onPress={async () => {
+                                    if (token) {
+                                        Clipboard.setString(token);
+                                        Snackbar.show({
+                                            text: 'Token copied to clipboard!',
+                                            duration: Snackbar.LENGTH_LONG,
+                                        });
+                                    } else {
+                                        Snackbar.show({
+                                            text: 'No Token can be found!',
+                                            duration: Snackbar.LENGTH_LONG,
+                                        });
+                                    }
+                                }}>
                                     <View style={ProfileCSS.iconCircle}>
                                         {/* <GradientBGIcon name={"info"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
                                         <Octicons name="info" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />

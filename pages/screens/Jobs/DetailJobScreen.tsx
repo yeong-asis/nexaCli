@@ -343,13 +343,14 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
                                     )}
                                 </View>
-
-                                <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.secondaryLightGreyHex}]} onPress={() => {console.log("Pause")}}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Pause </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryOrangeHex}]} onPress={() => {console.log("Done")}}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Done </Text>
-                                </TouchableOpacity>
+                                <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.secondaryLightGreyHex, width:"45%"}]} onPress={() => {console.log("Pause")}}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Pause </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryOrangeHex, width:"45%"}]} onPress={() => {console.log("Done")}}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Done </Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
                         {Platform.OS == "ios" && (
