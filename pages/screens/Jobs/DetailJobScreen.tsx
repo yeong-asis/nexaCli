@@ -25,6 +25,8 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
     const [startDate, setStartDate] = useState(new Date().toDateString());
     const [description, setDescription] = useState("");
 
+    const [type, setType] = useState("");
+
     const [issue, setIssue] = useState("");
     const [reason, setReason] = useState("");
     const [action, setAction] = useState("");
@@ -193,6 +195,22 @@ const JobDetailScreen = ({ navigation }: { navigation: any }) => {
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Desc: {description}</Text>
                                     </View>
+                                </View>
+
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Type:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        value={type}
+                                        placeholder="Service Call / Under Warranty"
+                                        onChangeText={setType}
+                                        returnKeyType="next"
+                                        // onSubmitEditing={() => projectRef.current?.focus()}
+                                    />
                                 </View>
 
                                 <View style={{ marginTop: 10 }}>

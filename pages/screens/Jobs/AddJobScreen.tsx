@@ -38,6 +38,8 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
     const [title, setTitle] = useState("");
     const [titleHelperText, settitleHelperText] = useState(false);
 
+    const [equipment, setEquipment] = useState("");
+
     const [project, setProject] = useState("");
     const [projectName, setProjectName] = useState("");
     const projectOptions = [
@@ -323,6 +325,23 @@ const AddJobScreen = ({ navigation }: { navigation: any }) => {
                                     )}
                                     {addressHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Address can't be empty</Text>}
                                 </View>
+
+                                <View style={{flexDirection: "column", marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Equipment:</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    </View>
+                                    <TextInput
+                                        label=""
+                                        mode="outlined"
+                                        value={equipment}
+                                        placeholder="Select Equipment"
+                                        onChangeText={setEquipment}
+                                        returnKeyType="next"
+                                        // onSubmitEditing={() => projectRef.current?.focus()}
+                                    />
+                                </View>
+
                                 <View style={{flexDirection: "column", marginTop: 10}}>
                                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Title:</Text>

@@ -15,8 +15,10 @@ const LoginScreen = ({navigation}: any) => {
     const [processData, setProcessData] = useState(false);
     const appVersion = DeviceInfo.getVersion();
     
-    const [userName, setUserName] = useState('pakmy@asis-technologies.com');
-    const [password, setPassword] = useState('Asis!234');
+    // const [userName, setUserName] = useState('pakmy@asis-technologies.com');
+    // const [password, setPassword] = useState('Asis!234');
+    const [userName, setUserName] = useState('');
+    const [password, setPassword] = useState('');
     const [ishide, setishide] = useState(true);
     const inputRef = React.createRef<TextInputs>();
     const [usernameHelperText, setusernameHelperText] = useState(false);
