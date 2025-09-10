@@ -45,12 +45,13 @@ const StockListCard: React.FC<WorkflowProps> = ({
                     <Text style={[styles.TextStatus, {
                         width: 110,
                         textAlign: "center",
-                        backgroundColor: statusColors[status] || COLORS.primaryRedHex,
+                        backgroundColor: COLORS.secondaryLightGreyHex
+                        // backgroundColor: statusColors[status] || COLORS.primaryRedHex,
                     }]}>
                         {status}
                     </Text>
 
-                    {movementType!="" ? (
+                    {/* {movementType!="" ? (
                         <Text style={[styles.TextTitle, {width: "100%", textAlign: "right", fontSize: 14, paddingRight: 15,}]}>
                             <Text style={{fontSize: 12, color: COLORS.primaryLightGreyHex}}>
                                 {"Type: "}
@@ -59,7 +60,7 @@ const StockListCard: React.FC<WorkflowProps> = ({
                         </Text>
                     ) : (
                         <></>
-                    )}
+                    )} */}
                 </View>
             </View>
         </View>

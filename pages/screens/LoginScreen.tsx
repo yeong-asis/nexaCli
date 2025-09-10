@@ -3,29 +3,28 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, StatusBar, Text, TextInput as TextInputs, TouchableOpacity, View } from 'react-native';
-import { Snackbar, TextInput } from 'react-native-paper';
+import { TextInput } from 'react-native-paper';
 import { COLORS } from '../../themes/theme';
 import { LoginManagementCSS, ButtonCSS, defaultCSS, FooterCSS } from '../../themes/CSS';
 import KeyboardAvoidWrapper from '../functions/KeyboardAvoidWrapper';
 import { IPAddress } from '../../objects/objects';
 import { ForceNewFCMToken } from '../functions/pushNotification';
 import DeviceInfo from 'react-native-device-info';
+import uuid from 'react-native-uuid';
+import Snackbar from 'react-native-snackbar';
 
 const LoginScreen = ({navigation}: any) => {
     const [processData, setProcessData] = useState(false);
     const appVersion = DeviceInfo.getVersion();
     
-    // const [userName, setUserName] = useState('pakmy@asis-technologies.com');
-    // const [password, setPassword] = useState('Asis!234');
-    const [userName, setUserName] = useState('');
-    const [password, setPassword] = useState('');
+    const [userName, setUserName] = useState('pakmy@asis-technologies.com');
+    const [password, setPassword] = useState('Asis!234');
+    // const [userName, setUserName] = useState('');
+    // const [password, setPassword] = useState('');
     const [ishide, setishide] = useState(true);
     const inputRef = React.createRef<TextInputs>();
     const [usernameHelperText, setusernameHelperText] = useState(false);
     const [passwordHelperText, setpasswordHelperText] = useState(false);
-
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const CallLoginAPI = async (username: any, password: any) => {
         setProcessData(true);
@@ -49,45 +48,45 @@ const LoginScreen = ({navigation}: any) => {
 
         if (!emtpy) {
             try {
-                await axios.get(
-                    `${IPAddress}/api/dashboard/login?email=${username}&password=${password}`
-                ).then(async response => {
+                await ForceNewFCMToken();
+                const showFCMToken = await AsyncStorage.getItem('fcmtoken') ?? "";
+                const GUIDToken = uuid.v4(); 
 
-                    await ForceNewFCMToken();
-                    const showFCMToken = await AsyncStorage.getItem('fcmtoken') ?? "";
-                    console.log("FCM Token: "+showFCMToken);
-                    
-                    const responseData=response.data;
-
-                    // console.log(responseData.isSuccess);
-                    if(responseData.isSuccess==true) {
-                        setSnackbarMessage('Success');
-                        setSnackbarVisible(true);
-
-                        // console.log(responseData.result[0].pkkey);
-                        await AsyncStorage.setItem('UserID', responseData.result[0].pkkey);
-                        await AsyncStorage.setItem('Department', responseData.result[0].department);
-                        await AsyncStorage.setItem('FullName', responseData.result[0].fullName);
-                        await AsyncStorage.setItem('Email', responseData.result[0].email);
-                        navigation.navigate("Tab", { screen: 'Dashboard'});
-                        setProcessData(false);
-
-                    }else{
-                        setSnackbarMessage('Login failed');
-                        setSnackbarVisible(true);
-                        setProcessData(false);
+                const request = {
+                    "User": {
+                        "Username": username,
+                        "Password": password
+                    },
+                    "FCMToken": {
+                        "GuildToken": GUIDToken,
+                        "FCMToken": showFCMToken
                     }
-                    // console.log(responseData.result);
-                });
+                }
 
-                // await AsyncStorage.setItem('UserID', "2");
-                // await AsyncStorage.setItem('UserIC', "990524015103");
-                // await AsyncStorage.setItem('UserType', "NRIC");
-                // await AsyncStorage.setItem('UserPosition', "Driver");
-                // await AsyncStorage.setItem('UserLevel', "1");
-                // await AsyncStorage.setItem('FullName', "WONG FUH YEONG");
-                // await AsyncStorage.setItem('Email', "yeongwf@asis-technologies.com");
-                // navigation.navigate("Tab", { screen: 'Dashboard'});
+                // POST request
+                const response = await axios.post(
+                    "http://192.168.168.150/NEXA/api/Authentication/post",
+                    request,
+                    {
+                        headers: { "Content-Type": "application/json" },
+                    }
+                );
+
+                const responseData=response.data;
+                if(responseData.Acknowledge==0) {
+                    await AsyncStorage.setItem('UserID', responseData.User.Id.toString());
+                    await AsyncStorage.setItem('RoleID', responseData.Role.Id.toString());
+                    await AsyncStorage.setItem('FullName', responseData.User.Name);
+                    await AsyncStorage.setItem('Email', responseData.User.Email);
+                    navigation.navigate("Tab", { screen: 'Dashboard'});
+                    setProcessData(false);
+                }else{
+                    Snackbar.show({
+                        text: 'Login Fail, Please try again.',
+                        duration: Snackbar.LENGTH_LONG,
+                    });
+                    setProcessData(false);
+                }
 
             }catch (error: any) {
                 console.log("Error: "+error);
@@ -101,19 +100,9 @@ const LoginScreen = ({navigation}: any) => {
             <StatusBar backgroundColor={COLORS.secondaryLightGreyHex} />
 
             {processData && (
-                <View style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', 
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 999,
-                }}>
-                    <ActivityIndicator size={50} color="#ffffff" />
-                    <Text style={{ marginTop: 10, color: '#ffffff' }}>Loading...</Text>
+                <View style={defaultCSS.loadingScreen}>
+                    <ActivityIndicator size={50} color={COLORS.primaryWhiteHex} />
+                    <Text style={{ marginTop: 10, color: COLORS.primaryWhiteHex }}>Loading...</Text>
                 </View>
             )}
 
@@ -190,14 +179,6 @@ const LoginScreen = ({navigation}: any) => {
             <View style={[FooterCSS.FooterContainer,]}>
                 <Text style={FooterCSS.FooterText}>Version: {appVersion}</Text>
             </View>
-
-            <Snackbar
-                visible={snackbarVisible}
-                onDismiss={() => setSnackbarVisible(false)}
-                duration={3000} // 3 seconds
-            >
-                {snackbarMessage}
-            </Snackbar>
         </View>
     );
 };

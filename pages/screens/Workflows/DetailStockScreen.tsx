@@ -283,128 +283,16 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         );
     };
 
-    const submitAddStock = async (
-        requestID: any, 
-        category: any,
-        movementType: any,
-        receiveFrom: any,
-        deliverTo: any,
-        purpose: any,
-        remark: any,
-        products: any,
-        attachments: any
+    const AddComment = async (
+        
     ) => {
 
         try {
-            const smqRequest = {
-                Id: 0,
-                RequesterID: requestID,
-                ValidatorRemark: null,
-                ApproverRemark: null,
-                ImplementerRemark: null,
 
-                // Example requester list (adapt to your state)
-                RequesterList: [
-                    {
-                    Id: requestID,
-                    BranchID: 0,
-                    TimeZoneID: 0,
-                    UserName: null,
-                    Password: null,
-                    Name: "JASON CHEW", // <- you can pass from state
-                    Email: "jasonchew@asis-technologies.com",
-                    Department: null,
-                    Role: null,
-                    Superior: null,
-                    IsActive: true,
-                    IsEnable: true,
-                    IsVerified: false,
-                    Salt: null,
-                    EncryptedPassword: null,
-                    CreatedBy: null,
-                    CreatedOn: null,
-                    LastUpdatedBy: null,
-                    LastUpdatedOn: null,
-                    }
-                ],
-
-                ValidatorIDList: null,
-                ApproverList: null,
-                ImplementerList: null,
-
-                // map products array into expected structure
-                ProductList: products.map((p: { productID: any; productName: any; sku: any; quantity: any; description: any; notes: any; }) => ({
-                    Id: 0,
-                    BranchID: 0,
-                    SMQID: 0,
-                    ProductID: p.productID,
-                    ProductName: p.productName ?? null,
-                    SKU: p.sku ?? null,
-                    StockOnHand: null,
-                    Quantity: p.quantity,
-                    Description: p.description ?? null,
-                    Notes: p.notes ?? null,
-                    Location: null,
-                    LocationName: null,
-                    UnitPrice: null,
-                    Discount: null,
-                    Amount: null,
-                    CreatedBy: null,
-                    CreatedOn: "0001-01-01T00:00:00",
-                    LastUpdatedBy: null,
-                    LastUpdatedOn: null,
-                })),
-
-                UploadAttachmentList: attachments,  // must match SMQ_Attachment[] shape
-                RequesterAttachment: null,
-                WorkflowStatus: 1,
-                KeyWord: null,
-
-                SMQDetail: {
-                    Id: 0,
-                    BranchID: 0,
-                    SMQCode: null,
-                    Requester: requestID,
-                    Category: category,
-                    MovementType: movementType,
-                    ReceiveFrom: receiveFrom,
-                    DeliverTo: deliverTo,
-                    Purpose: purpose,
-                    PTRID: null,
-                    PMXID: null,
-                    SO: null,
-                    RMA: null,
-                    ReceiverSignature: null,
-                    DelivererSignature: null,
-                    Remark: remark,
-                    ValidatorRemark: null,
-                    ApproverRemark: null,
-                    ImplementerRemark: null,
-                    SKIPValidator: false,
-                    Status: 0,
-                    IsValidateNotificationSent: false,
-                    ValidateNotificationSentDate: null,
-                    IsApprovalNotificationSent: false,
-                    ApprovalNotificationSentDate: null,
-                    IsAcceptNotificationSent: false,
-                    AcceptNotificationSentDate: null,
-                    CreatedBy: null,
-                    CreatedOn: null,
-                    LastUpdatedBy: null,
-                    LastUpdatedOn: null,
-                },
-
-                SMQList: null,
-                Comment: null,
-                CommentDetails: null,
-                UserColumn: null,
-                UserID: 0,
-                UserName: null,
-            };
 
             // // 🚀 POST request
             // const response = await axios.post(
-            //     "https://your-api-server.com/api/smq/submit",
+            //     "https://192.168.0.90:44313/api/SMQAPI/AddComment",
             //     smqRequest,
             //     {
             //         headers: { "Content-Type": "application/json" },
@@ -734,17 +622,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 </View>
                                 {status=="New" ? (
                                 <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
-                                    submitAddStock(
-                                        requester,
-                                        category,
-                                        movementType,
-                                        receiveFrom,
-                                        deliverTo,
-                                        purpose,
-                                        remark,
-                                        products,
-                                        attachments,
-                                    ) 
+                                    
                                 }}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                 </TouchableOpacity>
@@ -858,17 +736,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                 {status=="New" ? (
                                 <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
-                                    submitAddStock(
-                                        requester,
-                                        category,
-                                        movementType,
-                                        receiveFrom,
-                                        deliverTo,
-                                        purpose,
-                                        remark,
-                                        products,
-                                        attachments,
-                                    ) 
+                                    
                                 }}>
                                     <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                 </TouchableOpacity>
@@ -954,7 +822,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         />
                                     </View>
 
-                                    <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {console.log("Send Comment")}}>
+                                    <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {AddComment()}}>
                                         <Text style={AddItemScreenCSS.ButtonText}> Send Comment </Text>
                                     </TouchableOpacity>
                                 </View>

@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Clipboard, Dimensions, Image, Platform, SafeAreaView, StatusBar, Text, TouchableOpacity, View } from "react-native";
-import { SampleBase64Image } from '../../objects/SampleJsonData';
 import { defaultCSS, HeaderCSS, LoginManagementCSS, ProfileCSS } from '../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS } from '../../themes/theme';
 import LoadingAnimation from '../functions/LoadingAnimation';
@@ -18,7 +17,6 @@ export const ProfileScreen = ({navigation}: any) => {
     const [token, setToken] = useState("");
     const [UserPosition, setUserPosition] = useState("");
     const [ICNumber, setICNumber] = useState("");
-    const [FacePicBase64, setFacePicBase64] = useState("");
 
     useFocusEffect(
         React.useCallback(() => {
@@ -34,7 +32,6 @@ export const ProfileScreen = ({navigation}: any) => {
         const checkToken = await AsyncStorage.getItem('fcmtoken') ?? "";
 
         try {
-            setFacePicBase64(SampleBase64Image);
             setFullName(checkFullName);
             setEmail(checkEmail);
             setToken(checkToken);
@@ -70,11 +67,9 @@ export const ProfileScreen = ({navigation}: any) => {
                                     width: 150, 
                                     borderRadius: 80,
                                     resizeMode: 'cover',
-                                    // resizeMode: 'contain',
                                     alignSelf: "center",
                                 }} 
                                 source={require('../../assets/personIcon.png')}
-                                // source={FacePicBase64 ? {uri: "data:application/octet-stream;base64,"+FacePicBase64}: require('../../assets/personIcon.png')}
                             />
                         </View>
 

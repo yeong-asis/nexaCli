@@ -11,7 +11,7 @@ export const UserPageList = [
                 // source={colorScheme === 'light' ? require('../assets/DashboardLight.png') : require('../assets/DashboardDark.png')} 
             />
         ),
-        title: "Job",
+        title: "Field Service",
         navigate: "MainJob",
     },
     {

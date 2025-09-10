@@ -36,9 +36,6 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
             ).then(async response => {
                 
                 const responseData=response.data;
-                
-                // const responseData = sampleWorkflowData;
-                // console.log(responseData)
 
                 const formattedMessages = responseData.map((item: any) => {
                     return {

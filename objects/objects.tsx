@@ -9,7 +9,7 @@ export const TaskMenuItems = [
 ];
 
 export const WorkflowMenuItems = [
-    { id: 1, title: "Material Request", navigate: "MainMaterial", type: "material" },
+    // { id: 1, title: "Material Request", navigate: "MainMaterial", type: "material" },
     // { id: 2, title: "Production Trigger", navigate: "/workflow/productionsite", type: "production" },
     // { id: 3, title: "Purchase Request", navigate: "/workflow/purchasesite", type: "purchase" },
     // { id: 4, title: "Payment Request", navigate: "/workflow/paymentsite", type: "payment" },
