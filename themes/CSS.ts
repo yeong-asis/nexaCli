@@ -192,19 +192,32 @@ export const LoginManagementCSS = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.primaryWhiteHex,
         height: Dimensions.get("screen").height*0.45,
-        borderRadius: 16,
+        borderRadius: 6,
         overflow: 'hidden',
     },
-    TextInputFont: {
+    TextTitleFont: {
         color: COLORS.primaryDarkGreyHex,  
-        paddingLeft: 5, 
+        fontSize: 28, 
+        fontWeight: "bold",
+        textAlign: "center"
+    },
+    TextInputDesign: {
+        backgroundColor: COLORS.primaryWhiteHex, 
+        borderWidth: 0.4,
+        width: "80%",
+        height: 50,
+        alignSelf: "center",
+    },
+    TextInputFont: {
+        color: COLORS.primaryDarkGreyHex,
         fontSize: 14, 
         fontWeight: "bold",
+        textAlign: "center"
     },
     Button: {
         alignSelf:"center",
         backgroundColor:HEADERBACKGROUNDCOLORCODE,
-        width:"70%",
+        width:"40%",
         justifyContent:"center",
         marginTop: 20,
         borderRadius: 20,
@@ -215,6 +228,22 @@ export const LoginManagementCSS = StyleSheet.create({
         fontSize: 18,
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
+    },
+    HelperCSS: {
+        width: "80%", 
+        marginTop: 5, 
+        alignSelf: "center",
+    },
+    showPasswordButton: {
+        position: "absolute", 
+        alignSelf: "flex-end", 
+        margin: 6, 
+        zIndex: 10, 
+        paddingRight: 50,
+    },
+    showPasswordIcon: {
+        color:COLORS.primaryGreyHex, 
+        marginTop: 5,
     },
 });
 
@@ -232,6 +261,7 @@ export const HeaderCSS = StyleSheet.create({
     BackHeaderContainer: {
         backgroundColor: HEADERBACKGROUNDCOLORCODE,
         padding: 12,
+        paddingTop: 50,
         flexDirection: 'row',
     },
     HeaderText: {
@@ -268,7 +298,7 @@ export const FooterCSS = StyleSheet.create({
         alignItems: 'flex-end',
     },
     FooterText: {
-        color: COLORS.primaryLightGreyHex,
+        color: COLORS.secondaryLightGreyHex,
         alignSelf: "center",
     },
 });
@@ -306,10 +336,9 @@ export const AddItemScreenCSS = StyleSheet.create({
     Button: {
         alignSelf:"center",
         backgroundColor:HEADERBACKGROUNDCOLORCODE,
-        width:"70%",
+        width:"31%",
         justifyContent:"center",
-        marginTop: 20,
-        borderRadius: 20,
+        borderRadius: 8,
         height: 60,
     },
     ButtonText: {
@@ -340,11 +369,17 @@ export const AddItemScreenCSS = StyleSheet.create({
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
     },
+    NormalTextInput: {
+        backgroundColor: COLORS.primaryWhiteHex,
+    },
+    TextArea: {
+        backgroundColor: COLORS.primaryWhiteHex,
+        paddingVertical: 10
+    },
     dropdown: {
-        height: 60,
-        backgroundColor: COLORS.veryPinkHex,
+        height: 50,
+        backgroundColor: COLORS.primaryWhiteHex,
         borderColor: COLORS.primaryLightGreyHex,
-        // borderColor: '#BBBBBB',
         borderWidth: 1,
         borderRadius: 6,
         paddingHorizontal: 8,
@@ -366,10 +401,15 @@ export const AddItemScreenCSS = StyleSheet.create({
         fontSize: 14,
         color: COLORS.primaryDarkGreyHex,
     },
-    InputTextArea: {
-        textAlignVertical: 'top', 
-        fontSize: 14,
-    },
+    ReplyCommentCSS: {
+        flexDirection: "column",
+        backgroundColor: '#f0f0f0', 
+        padding: 8, 
+        borderLeftWidth: 3, 
+        borderLeftColor: '#4CAF50', 
+        marginBottom: 5,
+        borderRadius: 5 
+    }
 });
 
 export const SignatureCSS = `   
@@ -463,29 +503,19 @@ export const ButtonCSS = StyleSheet.create({
         justifyContent: 'center', 
         alignItems: 'center',
     },
-    showPasswordButton: {
-        position: "absolute", 
-        alignSelf: "flex-end", 
-        margin: 10, 
-        zIndex: 10, 
-        paddingRight: 10,
-    },
-    showPasswordIcon: {
-        color:COLORS.primaryGreyHex, 
-        marginTop: 5,
-    },
     SegmentedContainer: {
         flexDirection: "row", 
         alignSelf: "center", 
         justifyContent: "center", 
         width: Dimensions.get("screen").width*0.8, 
-        // backgroundColor: "yellow"
     },
     SegmentedButton: {
-        padding: 10,
+        paddingVertical: 10,
         width: 100,
-        borderWidth: 0.4,
-        // backgroundColor: "yellow"
+        alignItems: "center",
+        // padding: 10,
+        // width: 100,
+        // borderWidth: 0.4,
     },
     SegmentedText: {
         textAlign: "center",
@@ -529,7 +559,7 @@ export const IconListPicture = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         margin: 15,
-        // backgroundColor: "rgba(249, 180, 45, 0.2)",
+        backgroundColor: COLORS.secondaryVeryLightGreyHex,
         borderWidth: 1,
         borderColor: COLORS.secondaryLightGreyHex,
         borderRadius: 20,

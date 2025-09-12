@@ -1,66 +1,42 @@
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { WorkflowProps } from '../objects';
-import { COLORS } from '../../themes/theme';
+import { COLORS, HEADERBACKGROUNDCOLORCODE } from '../../themes/theme';
 
 
 const StockListCard: React.FC<WorkflowProps> = ({
     pkkey,
     code,
-    description,
     status,
-    totalAmount,
-    currencyName,
-    remark,
-    requester,
-    dueDate,
-    productSeries,
-    productStage,
-    supplierName,
-    movementType,
-    debitAccount,
-    shipping,
-    getDate,
+    RequesterName,
+    categoryName,
     createdDate,
 }) => {
     const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-
-    const statusColors: Record<string, string> = {
-        New: COLORS.secondaryLightGreyHex,
-        Approved: COLORS.primaryGreenHex,
-        Accepted: COLORS.secondaryGreenHex,
-        Completed: COLORS.primaryOrangeHex,
-        Validated: COLORS.primaryYellowHex,
-    };
 
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
                 <View style={{flexDirection: "column", width: "60%",}}>
                     <Text style={[styles.TextTitle, {width: "100%",}]}>{code}</Text>
+                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{categoryName}</Text>
+                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{RequesterName}</Text>
                     <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{newFormatDate}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
-
-                    <Text style={[styles.TextStatus, {
+                    <Text style={[styles.TextStatus2, {
+                        width: 120,
+                    }]}>
+                        {status}
+                    </Text>
+                    {/* <Text style={[styles.TextStatus, {
                         width: 110,
                         textAlign: "center",
                         backgroundColor: COLORS.secondaryLightGreyHex
                         // backgroundColor: statusColors[status] || COLORS.primaryRedHex,
                     }]}>
                         {status}
-                    </Text>
-
-                    {/* {movementType!="" ? (
-                        <Text style={[styles.TextTitle, {width: "100%", textAlign: "right", fontSize: 14, paddingRight: 15,}]}>
-                            <Text style={{fontSize: 12, color: COLORS.primaryLightGreyHex}}>
-                                {"Type: "}
-                            </Text>
-                            {movementType}
-                        </Text>
-                    ) : (
-                        <></>
-                    )} */}
+                    </Text> */}
                 </View>
             </View>
         </View>
@@ -87,7 +63,6 @@ const styles = StyleSheet.create({
     TextDescription: {
         color: COLORS.primaryGreyHex,
         fontSize: 14,
-        marginVertical: 5,
         textAlign: "left",
         textAlignVertical: "center",
         width: "80%",
@@ -105,6 +80,16 @@ const styles = StyleSheet.create({
         borderRadius: 20, 
         paddingHorizontal: 15, 
         paddingVertical: 5
+    },
+    TextStatus2: {
+        marginVertical: 5,
+        textAlignVertical: "center",
+        alignSelf: "flex-end", 
+        textAlign: "right", 
+        width: 'auto', 
+        fontWeight: "bold", 
+        fontSize: 16, 
+        color: HEADERBACKGROUNDCOLORCODE
     },
 });
 

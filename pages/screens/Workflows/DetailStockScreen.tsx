@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Animated, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
@@ -7,7 +7,7 @@ import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../
 import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
-import { AttachmentsProps, CommentLogProps, IPAddress, SelectionItem, WorkflowLogProps } from '../../../objects/objects';
+import { AttachmentsProps, CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { useRoute } from '@react-navigation/native';
@@ -15,6 +15,7 @@ import WorkflowLogCard from '../../../objects/Cards/WorkflowLogCard';
 import CommentLogCard from '../../../objects/Cards/CommentLogCard';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 
 type ProductItem = {
     id: string;
@@ -26,6 +27,8 @@ type ProductItem = {
 const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const route = useRoute();
     const { key, code, status } = route.params as any;
+
+    const [currentUserID, setCurrentUserID] = useState("");
 
     const [processData, setProcessData] = useState(false);
     const [selectedType, setSelectedType] = useState("General");
@@ -46,18 +49,21 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const [receiveFromName, setReceiveFromName] = useState('');
     const [receiveFromOptions, setReceiveFromOptions] = useState<SelectionItem[]>([]);
 
-    const [movementType, setMovementType] = useState('IN');
+    const [movementType, setMovementType] = useState('1');
     const [movementTypeName, setMovementTypeName] = useState('IN');
     const movementTypeOptions = [{'pkkey':'1', 'name':'IN'}, {'pkkey':'2', 'name':'OUT'}];
 
     const [purpose, setPurpose] = useState("");
     const [remark, setRemark] = useState("");
+    const [validators, setValidators] = useState<Validators[]>([]);
+    const [isValidators, setIsValidators] = useState(false);
     const [createdDate, setCreatedDate] = useState("");
     const [attachments, setAttachments] = useState<any[]>([]);
 
     const [comments, setComments] = useState("");
     const [workflowLogs, setWorkflowLogs] = useState([]);
     const [commentLogs, setCommentLogs] = useState([]);
+    const [replyTo, setReplyTo] = React.useState<CommentLogProps | null>(null);
     const [currentAttachment, setCurrentAttachment] = useState<AttachmentsProps[]>([]);
 
     const [showSummary, setShowSummary] = useState(false);
@@ -67,12 +73,14 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const [productOptions, setProductOption] = useState<SelectionItem[]>([]);
 
     const [focusedDropdownIndex, setFocusedDropdownIndex] = useState<number | null>(null);
-
+    
     useEffect(() => {
         (async () => {
-            const getUserID = await AsyncStorage.getItem('UserID') ?? "";
-            setRequester(getUserID);
-            await fetchedSelectionAPI(getUserID);
+            setProcessData(true);
+            await fetchedSelectionAPI();
+            await fetchedDetailAPI();
+            await fetchedLogCommentAPI();
+            setProcessData(false);
         })();
     }, []);
 
@@ -99,212 +107,498 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
-    const fetchedSelectionAPI = async(selectedUser: any) => {
-        setProcessData(true);
-        // console.log(selectedUser)
+    const fetchedSelectionAPI = async() => {
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+        setCurrentUserID(getUserID);
 
         try {
-            // SMQ Detail
-            await axios.get( 
-                `${IPAddress}/api/dashboard/GetSMQDetail?UserId=${selectedUser}&SMQID=${key}` 
-            ).then(async response => {
-                const responseData=response.data;
+            const response = await axios.post(
+                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                {
+                    "APIAction": "GetPreloadData"
+                },
+                {
+                    auth: {
+                        username: getUserEmail,
+                        password: getUserPassword
+                    }
+                }
+            );
 
-                setRequesterName(responseData[0].requester);
-                setRequester(responseData[0].requestID);
-                setCategory(responseData[0].category);
-                setMovementType(responseData[0].movementType);
-                setReceiveFrom(responseData[0].receiveFrom);
-                setDeliverTo(responseData[0].deliverTo);
-                setPurpose(responseData[0].purpose);
-                setRemark(responseData[0].remark);
-                setCreatedDate(responseData[0].createdOn);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+            const responseData=response.data;
+            if(responseData.Acknowledge==0) {
 
-            // SMQ Product Detail
-            await axios.get( 
-                `${IPAddress}/api/dashboard/GetSMQProductDetail?SMQID=${key}` 
-            ).then(async response => {
-                const responseData=response.data;
-                console.log(responseData)
-
-                // Transform response into the structure your component expects
-                const mappedProducts = responseData.map((p: any) => ({
-                    id: p.productID,           // must match productOptions valueField
-                    name: p.sku,       // label for display
-                    quantity: String(p.quantity),   // make sure it's string for TextInput
-                    notes: p.notes || ''
+                const getRequesters=responseData.Requesters;
+                const requesterOptions: SelectionItem[] = getRequesters.map((item: any) => ({
+                    pkkey: String(item.Id),
+                    name: item.Name,
                 }));
+                setRequesterOptions(requesterOptions);
+                const user = responseData.Requesters.find((u: any) => u.Id === getUserID);
+                setRequesterName(user?.fullName ?? '');
 
-                setProducts(mappedProducts);
+                const getCategory=responseData.Categories;
+                const categoryOptions: SelectionItem[] = getCategory.map((item: any) => ({
+                    pkkey: String(item.Id),
+                    name: item.Name,
+                }));
+                setCategoryOptions(categoryOptions);
 
-            }).catch(error => {
+                const getReceiveFrom=responseData.ReceiveFrom;
+                const receiveFromOptions: SelectionItem[] = getReceiveFrom.map((item: any) => ({
+                    pkkey: String(item.DEARID),
+                    name: item.Name,
+                }));
+                setReceiveFromOptions(receiveFromOptions);
+
+                const getDeliverTo=responseData.DeliverTo;
+                const deliverToOptions: SelectionItem[] = getDeliverTo.map((item: any) => ({
+                    pkkey: String(item.DEARID),
+                    name: item.Name,
+                }));
+                setDeliverToOptions(deliverToOptions);
+
+                const getProducts=responseData.Products;
+                const productsOptions: SelectionItem[] = getProducts.map((item: any) => ({
+                    pkkey: String(item.DEARID),
+                    name: item.Name,
+                    notes: item.Notes == null ? "" : item.Notes,
+                    unitPrice: item.UnitPrice,
+                    discount: item.Discount,
+                }));
+                setProductOption(productsOptions);
+
+            }else{
+                Snackbar.show({
+                    text: 'Connect Server failed, Please try again.',
+                    duration: Snackbar.LENGTH_LONG,
+                });
                 setProcessData(false);
-                console.log(error);
-            });
-
-            // user list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getUser` 
-            ).then(async response => {
-                const responseData=response.data;
-                setRequesterOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // customer list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getCustomer` 
-            ).then(async response => {  
-                const responseData=response.data;
-                setDeliverToOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // supplier list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getSupplier` 
-            ).then(async response => {
-                const responseData=response.data;
-                setReceiveFromOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // category list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getSMQCategory` 
-            ).then(async response => {
-                const responseData=response.data;
-                setCategoryOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // SMQ Workflow Log
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getSMQWorkflowLog?SMQID=${key}` 
-            ).then(async response => {
-                const responseData=response.data;
-                setWorkflowLogs(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // SMQ Comment Log
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getSMQCommentLog?SMQID=${key}` 
-            ).then(async response => {
-                const responseData=response.data;
-                setCommentLogs(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-            
-            // SMQ Comment Log
-            await axios.get( 
-                `${IPAddress}/api/dashboard/productCRM` 
-            ).then(async response => {
-                const responseData=response.data;
-                setProductOption(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            // product list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getProductList`
-            ).then(async response => {
-                const responseData=response.data;
-                setProductOption(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
-
-            setProcessData(false);
+            }
 
         }catch (error: any) {
             setProcessData(false);
-            console.log("Error: "+error);
+            Snackbar.show({
+                text: "Error: "+error,
+                duration: Snackbar.LENGTH_LONG,
+            });
         }
     };
 
+    const fetchedDetailAPI = async() => {
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+        try {
+            const response = await axios.post(
+                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                {
+                    "APIAction": "GetSMQById",
+                    "UserID": getUserID,
+                    "SMQ": {
+                        "Id": key
+                    }
+                },
+                {
+                    auth: {
+                        username: getUserEmail,
+                        password: getUserPassword
+                    }
+                }
+            );
+
+            const responseData=response.data;
+            if(responseData.Acknowledge==0) {
+                setRequesterName(responseData.SMQ.Requester);
+                setRequester(responseData.SMQ.RequesterID);
+                setCategory(responseData.SMQ.Category);
+                setCategoryName(responseData.SMQ.CategoryName);
+                setMovementType(responseData.SMQ.MovementType);
+                
+                setReceiveFrom(responseData.SMQ.ReceiveFrom);
+                setReceiveFromName(responseData.SMQ.ReceiveFromName);
+                
+                setDeliverTo(responseData.SMQ.DeliverTo);
+                setDeliverToName(responseData.SMQ.DeliverToName);
+
+                setPurpose(responseData.SMQ.Purpose);
+                setRemark(responseData.SMQ.Remark);
+                setCreatedDate(responseData.SMQ.CreatedOn);
+
+                const formattedValidator = responseData.SMQ.Validators.map((item: any) => {
+                    return {
+                        pkkey: String(item.Id),
+                        name: item.Name,
+                    };
+                });
+                setValidators(formattedValidator);
+                const isCurrentUserValidator = formattedValidator.some((v: Validators) => v.pkkey === getUserID);
+                setIsValidators(isCurrentUserValidator);
+
+                const formattedMessages = responseData.Products.map((item: any) => {
+                    return {
+                        id: item.DEARID,
+                        name: item.SKU,
+                        quantity: String(item.Quantity),
+                        notes: item.Notes,
+                    };
+                });
+                setProducts(formattedMessages);
+
+            }else{
+                Snackbar.show({
+                    text: "Load data failed.",
+                    duration: Snackbar.LENGTH_LONG,
+                });
+            }
+
+        }catch (error: any) {
+            setProcessData(false);
+            Snackbar.show({
+                text: "Error: "+error,
+                duration: Snackbar.LENGTH_LONG,
+            });
+        }
+    }
+
+    const fetchedLogCommentAPI = async() => {
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+        try {
+            const responseDetail = await axios.post(
+                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                {
+                    "APIAction": "GetSMQInfo",
+                    "UserID": getUserID,
+                    "SMQ": {
+                        "Id": key
+                    }
+                },
+                {
+                    auth: {
+                        username: getUserEmail,
+                        password: getUserPassword
+                    }
+                }
+            );
+
+            const responseData=responseDetail.data;
+            if(responseData.Acknowledge==0) {
+                const formattedMessages = responseData.Activities.map((item: any) => {
+                    const newLogOnDate = new Date(item.LogOn).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    return {
+                        pkkey: item.Id,
+                        SMQID: item.SMQID,
+                        personName: item.CreatedBy,
+                        comment: item.LogDetail,
+                        process: item.Process,
+                        logOn: newLogOnDate,
+                        status: item.Status,
+                        parentCommentID: item.ParentCommentID,
+                    };
+                });
+                setWorkflowLogs(formattedMessages);
+
+                const commentMessages = responseData.Comments.map((item: any) => {
+                    const newCreatedOn = new Date(item.CreatedOn).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    return {
+                        pkkey: item.ID,
+                        SMQID: item.SMQID,
+                        process: "",
+                        personName: item.CreatedBy,
+                        parentCommentID: item.ParentCommentID,
+                        comment: item.Comment,
+                        logOn: newCreatedOn,
+                        status: item.status,
+                    };
+                });
+                const arrangedComments: any = arrangeComments(commentMessages);
+                console.log(arrangedComments)
+                setCommentLogs(arrangedComments);
+
+            }else{
+                Snackbar.show({
+                    text: "View Log and Comment failed. ",
+                    duration: Snackbar.LENGTH_LONG,
+                });
+            }
+
+        }catch (error: any) {
+            setProcessData(false);
+            Snackbar.show({
+                text: "Error: "+error,
+                duration: Snackbar.LENGTH_LONG,
+            });
+        }
+    }
+
+    const arrangeComments = (comments: CommentLogProps[]): CommentLogProps[] => {
+        const commentMap: Record<string, CommentLogProps[]> = {};
+
+        // Group by parentCommentID
+        comments.forEach((c) => {
+            const parentId = c.parentCommentID || "0";
+            if (!commentMap[parentId]) commentMap[parentId] = [];
+            commentMap[parentId].push(c);
+        });
+
+        const result: CommentLogProps[] = [];
+
+        const addComments = (parentId: string) => {
+            const children = commentMap[parentId] || [];
+            children.forEach((child) => {
+                result.push(child);
+                addComments(child.pkkey); // recursively add replies under this comment
+            });
+        };
+
+        addComments("0"); // start from top-level comments
+        return result;
+    };
+
+    const ProcessingStep = async (
+        requestID: any, 
+        category: any,
+        movementType: any,
+        receiveFrom: any,
+        deliverTo: any,
+        purpose: any,
+        remark: any,
+        products: any,
+        attachments: any
+    ) => {
+        setProcessData(true);
+        let emtpy = false;
+
+        if (category === '') {
+            Snackbar.show({
+                text: 'Category can not be empty',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (receiveFrom === '') {
+            Snackbar.show({
+                text: 'Receive From can not be empty',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (deliverTo === '') {
+            Snackbar.show({
+                text: 'Deliver to can not be empty',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (products.length<=1 && products[0].id=="") {
+            Snackbar.show({
+                text: 'Please choose at least one product',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }else if (products.length<=1 && products[0].quantity=="") {
+            Snackbar.show({
+                text: 'Quantity can not be zero',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (!emtpy) {
+            const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+            const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+            try {
+                const formattedProducts = products.map((p: any) => ({
+                    DEARID: p.id,
+                    Notes: p.notes || "",
+                    Quantity: Number(p.quantity) || 0,
+                    UnitPrice: Number(p.unitPrice) || 0,
+                    Discount: Number(p.discount) || 0,
+                    Amount: (Number(p.quantity) || 0) * (Number(p.unitPrice) || 0)
+                }));
+
+                const request = {
+                    "APIAction": "Edit",
+                    "SMQ": {
+                        "RequesterID": Number(requestID),
+                        "Category": Number(category),
+                        "MovementType": Number(movementType),
+                        "ReceiveFrom": receiveFrom,
+                        "DeliverTo": deliverTo,
+                        "Purpose": purpose,
+                        "PTRID": 0,
+                        "PMXID": 0,
+                        "SO": "",
+                        "RMA": "",
+                        "ReceiverSignature": "",
+                        "DelivererSignature": "",
+                        "Remark": remark,
+                        "SKIPValidator": false
+                    },
+                    "Products": formattedProducts,
+                    "Documents": [
+                        {
+                            "FileName": "ERD.png",
+                            "FileExtension": ".png",
+                            "FileBase64": "",
+                            "FileSize": 0
+                        }
+                    ]
+                }
+
+                const response = await axios.post(
+                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                    request,
+                    {
+                        auth: {
+                            username: getUserEmail,
+                            password: getUserPassword
+                        }
+                    }
+                );
+
+                const responseData=response.data;
+
+                if(responseData.Acknowledge==0) {
+                    Alert.alert(
+                        "Success",
+                        "Add SMQ Success.",
+                        [
+                            {
+                                text: "OK",
+                                onPress: () => {
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: "MainStock" }],
+                                    });
+                                },
+                            },
+                        ],
+                        { cancelable: false }
+                    );
+                }else{
+                    Snackbar.show({
+                        text: 'Add SMQ failed.',
+                        duration: Snackbar.LENGTH_LONG,
+                    });
+                    setProcessData(false);
+                }
+
+            } catch (error: any) {
+                Snackbar.show({
+                    text: 'Connect Server failed, Please try again.',
+                    duration: Snackbar.LENGTH_LONG,
+                });
+                console.log(error)
+                setProcessData(false);
+            }
+        }
+
+        setProcessData(false);
+    }
+
+    const AddComment = async (
+        Comments: any
+    ) => {
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+        try {
+            const responseDetail = await axios.post(
+                "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                {
+                    "APIAction": "AddComment",
+                    "UserID": Number(getUserID),
+                    "Comment": {
+                        "ID": 0,
+                        "SMQID": Number(key),
+                        "ParentCommentID": 0,
+                        "Comment": Comments
+                    }
+                },
+                {
+                    auth: {
+                        username: getUserEmail,
+                        password: getUserPassword
+                    }
+                }
+            );
+
+            const responseData=responseDetail.data;
+            
+            if(responseData.Acknowledge==0) {
+                setComments("")
+                fetchedLogCommentAPI();
+            }else{
+                Snackbar.show({
+                    text: "Add comment failed ",
+                    duration: Snackbar.LENGTH_LONG,
+                });
+            }
+            
+        }catch (error: any) {
+            setProcessData(false);
+            Snackbar.show({
+                text: "Error: "+error,
+                duration: Snackbar.LENGTH_LONG,
+            });
+        }
+    }
+
     const showWorkflowLogCard = ({ item }: { item: WorkflowLogProps }) => {
         return (
-            <TouchableOpacity onPress={() => {
-                
-            }} >
+            <TouchableOpacity onPress={() => { }} >
                 <WorkflowLogCard 
-                    pkkey={item.pkkey} 
-                    logDetail={item.logDetail} 
-                    lastUpdatedDate={item.lastUpdatedDate} 
-                    lastUpdatedBy={item.lastUpdatedBy}              
+                    pkkey={item.pkkey}
+                    personName={item.personName}
+                    comment={item.comment}
+                    logOn={item.logOn} 
+                    SMQID={item.SMQID} 
+                    process={item.process}          
                 />
             </TouchableOpacity>
         );
     };
 
     const showCommentLogCard = ({ item }: { item: CommentLogProps }) => {
+        const renderRightActions = () => (
+            <View style={{ justifyContent: 'center', backgroundColor: '#4CAF50', padding: 10 }}>
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Reply</Text>
+            </View>
+        );
+
         return (
-            <TouchableOpacity onPress={() => {
-                
-            }} >
+            <Swipeable renderRightActions={renderRightActions} onSwipeableOpen={() => setReplyTo(item)}>
                 <CommentLogCard 
-                    pkkey={item.pkkey} 
+                    pkkey={item.pkkey}
                     personName={item.personName}
-                    comment={item.comment} 
-                    createdBy={item.createdBy}
-                    lastUpdatedDate={item.lastUpdatedDate} 
-                    lastUpdatedBy={item.lastUpdatedBy}              
+                    comment={item.comment}
+                    logOn={item.logOn} 
+                    SMQID={item.SMQID} 
+                    process={item.process} 
+                    status={item.status}  
+                    parentCommentID={item.parentCommentID}             
                 />
-            </TouchableOpacity>
+            </Swipeable>
         );
     };
-
-    const AddComment = async (
-        
-    ) => {
-
-        try {
-
-
-            // // 🚀 POST request
-            // const response = await axios.post(
-            //     "https://192.168.0.90:44313/api/SMQAPI/AddComment",
-            //     smqRequest,
-            //     {
-            //         headers: { "Content-Type": "application/json" },
-            //     }
-            // );
-
-            // console.log("✅ Submitted successfully:", response.data);
-
-        } catch (error: any) {
-            console.error("❌ Submission failed:", error.message);
-        }
-    }
 
     return (
         <View style={defaultCSS.ScreenContainer}>
@@ -338,40 +632,40 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 overflow: 'hidden',
                             }]}>
                                 <View style={ButtonCSS.SegmentedContainer}>
-                                    <Pressable 
-                                        style={[ButtonCSS.SegmentedButton, {
-                                            borderTopLeftRadius: 20, 
-                                            borderBottomLeftRadius: 20, 
-                                            backgroundColor: selectedType=="General" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
-                                        }]}
-                                        onPress={()=> {
-                                            setSelectedType("General");
-                                        }}
-                                    >
-                                        <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="General" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>General</Text>
-                                    </Pressable>
-                                    <Pressable 
-                                        style={[ButtonCSS.SegmentedButton, {
-                                            backgroundColor: selectedType=="Products" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
-                                        }]}
-                                        onPress={()=> {
-                                            setSelectedType("Products");
-                                        }}
-                                    >
-                                        <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="Products" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>Products</Text>
-                                    </Pressable>
-                                    <Pressable 
-                                        style={[ButtonCSS.SegmentedButton, {
-                                            borderTopRightRadius: 20, 
-                                            borderBottomRightRadius: 20, 
-                                            backgroundColor: selectedType=="More" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
-                                        }]}
-                                        onPress={()=> {
-                                            setSelectedType("More");
-                                        }}
-                                    >
-                                        <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="More" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>More Info</Text>
-                                    </Pressable>
+                                    {["General", "Products", "More"].map((type, index) => {
+                                        const isSelected = selectedType === type;
+
+                                        return (
+                                        <Pressable
+                                            key={type}
+                                            onPress={() => setSelectedType(type)}
+                                            style={[
+                                            ButtonCSS.SegmentedButton,
+                                            {
+                                                // backgroundColor: isSelected ? HEADERBACKGROUNDCOLORCODE : "transparent",
+                                                borderWidth: isSelected ? 2 : 0,
+                                                backgroundColor: COLORS.primaryWhiteHex,
+                                                borderColor: isSelected ? HEADERBACKGROUNDCOLORCODE : "transparent",
+                                                borderBottomWidth: isSelected ? 2 : 2,
+                                                borderBottomColor: COLORS.primaryGreyHex,
+                                                borderRadius: isSelected ? 6 : 0,
+                                                marginHorizontal: 5,
+                                            },
+                                            ]}
+                                        >
+                                            <Text
+                                            style={{
+                                                color: isSelected ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryGreyHex,
+                                                // color: isSelected ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex,
+                                                fontWeight: isSelected ? "bold" : "normal",
+                                                textAlign: "center",
+                                            }}
+                                            >
+                                            {type === "More" ? "More Info" : type}
+                                            </Text>
+                                        </Pressable>
+                                        );
+                                    })}
                                 </View>
 
                                 {(selectedType=="General") ? (
@@ -562,8 +856,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         numberOfLines={5}
                                         value={purpose}
                                         onChangeText={setPurpose}
-                                        style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
                                         placeholder="Enter Purpose here"
+                                        style={AddItemScreenCSS.TextArea}
                                     />
                                 </View>
 
@@ -578,8 +872,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         numberOfLines={5}
                                         value={remark}
                                         onChangeText={setRemark}
-                                        style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
                                         placeholder="Enter Remark here"
+                                        style={AddItemScreenCSS.TextArea}
                                     />
                                 </View>
 
@@ -620,33 +914,39 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     </View>
                                     ))}
                                 </View>
-                                {status=="New" ? (
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
-                                    
-                                }}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
-                                </TouchableOpacity>
-                                ) : (
-                                <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%",}]} onPress={() => { 
-                                        setShowSummary(true)
-                                        // Snackbar.show({
-                                        //     text: 'Approve SMQ',
-                                        //     duration: Snackbar.LENGTH_LONG,
-                                        // });
+
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
+                                { (requester==currentUserID) ? ( 
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
+                                        
                                     }}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width:"45%",}]} onPress={() => { 
-                                        Snackbar.show({
-                                            text: 'Reject SMQ',
-                                            duration: Snackbar.LENGTH_LONG,
-                                        });
-                                    }}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
-                                    </TouchableOpacity>
-                                </View>
+                                ) : ( 
+                                    <></> 
                                 )}
+
+                                { (isValidators==true) ? (
+                                    <>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE}]} onPress={() => { 
+                                            setShowSummary(true)
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex}]} onPress={() => { 
+                                            Snackbar.show({
+                                                text: 'Reject SMQ',
+                                                duration: Snackbar.LENGTH_LONG,
+                                            });
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
+                                        </TouchableOpacity>
+                                    </>
+                                ) : (
+                                    <></>
+                                )}
+                                </View>
+
                                 </>
                                 ) : (selectedType=="Products") ? (
                                 <>
@@ -666,8 +966,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             maxHeight={200}
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={!item.name ? 'Select product...' : item.name}
-                                            searchPlaceholder="Search products..."
+                                            placeholder={!item.name ? 'Select..' : item.name}
+                                            searchPlaceholder="Search.."
                                             value={item.id}
                                             onFocus={() => setFocusedDropdownIndex(index)}
                                             onBlur={() => setFocusedDropdownIndex(null)}
@@ -692,6 +992,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                                 setProducts(updated);
                                             }}
                                             placeholder="0"
+                                            style={AddItemScreenCSS.NormalTextInput}
                                             />
                                         </View>
 
@@ -708,6 +1009,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                                 setProducts(updated);
                                                 }}
                                                 placeholder="Enter any notes"
+                                                style={AddItemScreenCSS.TextArea}
                                             />
                                         </View>
 
@@ -725,6 +1027,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         )}
                                     </View>
                                 ))}
+                                
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
@@ -734,32 +1037,40 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     <Text style={AddItemScreenCSS.AddItemText}>Add Product</Text>
                                 </TouchableOpacity>
 
-                                {status=="New" ? (
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
-                                    
-                                }}>
-                                    <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
-                                </TouchableOpacity>
-                                ) : (
-                                <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%",}]} onPress={() => { 
-                                        Snackbar.show({
-                                            text: 'Approve SMQ',
-                                            duration: Snackbar.LENGTH_LONG,
-                                        });
+                                { (requester==currentUserID) ? ( 
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
+                                        
                                     }}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width:"45%",}]} onPress={() => { 
-                                        Snackbar.show({
-                                            text: 'Reject SMQ',
-                                            duration: Snackbar.LENGTH_LONG,
-                                        });
-                                    }}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
-                                    </TouchableOpacity>
-                                </View>
+                                ) : ( 
+                                    <></> 
                                 )}
+
+                                { (isValidators==true) ? (
+                                    <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE, width:"45%",}]} onPress={() => { 
+                                            setShowSummary(true)
+                                            // Snackbar.show({
+                                            //     text: 'Approve SMQ',
+                                            //     duration: Snackbar.LENGTH_LONG,
+                                            // });
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width:"45%",}]} onPress={() => { 
+                                            Snackbar.show({
+                                                text: 'Reject SMQ',
+                                                duration: Snackbar.LENGTH_LONG,
+                                            });
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : (
+                                    <></>
+                                )}
+                                
                                 </>
                                 ) : (
                                 <View style={{flex: 1}}>
@@ -770,16 +1081,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
                                         </View>
-                                        {/* <View style={{ flexDirection: 'row', alignItems: 'baseline' }}> */}
-                                            <FlatList 
-                                                scrollEnabled={false}
-                                                // scrollEnabled={true}
-                                                // style={{height: 200,}}
-                                                data={workflowLogs} 
-                                                keyExtractor={(item: any) => item.pkkey}
-                                                renderItem={showWorkflowLogCard} 
-                                            />
-                                        {/* </View> */}
+                                        <FlatList 
+                                            nestedScrollEnabled={false}
+                                            data={workflowLogs}
+                                            keyExtractor={(item: any) => item.pkkey}
+                                            renderItem={showWorkflowLogCard} 
+                                            style={{ height: workflowLogs.length == 1 ? 60 : workflowLogs.length == 2 ? 100 : workflowLogs.length == 3 ? 150 : workflowLogs.length == 4 ? 200 : 250 }}
+                                        />
                                     </View>
                                     <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
                                     </>
@@ -791,16 +1099,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}> View Comment</Text>
                                         </View>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <FlatList 
-                                                scrollEnabled={false}
-                                                // scrollEnabled={true}
-                                                // style={{height: 200,}}
-                                                data={commentLogs} 
-                                                keyExtractor={(item: any) => item.pkkey}
-                                                renderItem={showCommentLogCard} 
-                                            />
-                                        </View>
+                                        <FlatList 
+                                            nestedScrollEnabled={true}
+                                            data={commentLogs} 
+                                            keyExtractor={(item: any) => item.pkkey}
+                                            renderItem={showCommentLogCard} 
+                                            style={{ height: commentLogs.length == 1 ? 60 : commentLogs.length == 2 ? 100 : commentLogs.length == 3 ? 150 : commentLogs.length == 4 ? 200 : 250 }}
+                                        />
                                     </View>
                                     <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
                                     </>
@@ -810,6 +1115,23 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>Comment</Text>
                                         </View>
+                                        {replyTo && (
+                                        <View style={AddItemScreenCSS.ReplyCommentCSS}>
+                                            <View style={{flexDirection: "row", justifyContent: "space-between",}}>
+                                                <Text style={{ fontSize: 12, fontWeight: 'bold' }}>
+                                                    Replying to {replyTo.personName}
+                                                </Text>
+                                                <TouchableOpacity onPress={() => setReplyTo(null)}>
+                                                    <Text style={{ fontSize: 10, color: 'red', marginTop: 4 }}>Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            <View>
+                                                <Text style={{ fontSize: 12, color: '#555' }} numberOfLines={1}>
+                                                    {replyTo.comment}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        )}
                                         <TextInput
                                             label=""
                                             mode="outlined"
@@ -817,13 +1139,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             numberOfLines={5}
                                             value={comments}
                                             onChangeText={setComments}
-                                            style={AddItemScreenCSS.InputTextArea}
+                                            style={AddItemScreenCSS.TextArea}
                                             placeholder="Write your comment..."
                                         />
                                     </View>
 
-                                    <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => {AddComment()}}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Send Comment </Text>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {marginTop: 10, width: "45%"}]} onPress={() => {AddComment(comments)}}>
+                                        <Text style={AddItemScreenCSS.ButtonText}> Comment </Text>
                                     </TouchableOpacity>
                                 </View>
                                 )}

@@ -50,18 +50,19 @@ export const DashboardScreen = ({navigation}: any) => {
                         {/* Logo & Title Container */}
                         <View style={[{flex: 0.2, alignItems: "center"}]}>
                             <Image 
-                            source={require('../../assets/asislogo.png')} 
+                            source={require('../../assets/NexaBoard.png')} 
                             style={{ 
                                 width: Dimensions.get("screen").width*0.7, 
+                                height: 100,
                                 resizeMode: 'contain', 
                                 alignSelf: "center",
-                                // marginTop: 60,
+                                marginTop: 30,
                             }} />
-                            <View style={[defaultCSS.TitleContainer]}>
+                            {/* <View style={[defaultCSS.TitleContainer]}>
                                 <Text style={[defaultCSS.ScreenTitle]}>
                                     Welcome To ASIS Technologies
                                 </Text>
-                            </View>
+                            </View> */}
                         </View>
 
                         {/* Menu Flatlist Container */}
@@ -84,7 +85,7 @@ export const DashboardScreen = ({navigation}: any) => {
                                 <ScrollView
                                 showsVerticalScrollIndicator={false}
                                 contentContainerStyle={defaultCSS.ScrollViewFlex}>
-                                    <View style={IconListPicture.IconList}>
+                                    <View style={[IconListPicture.IconList]}>
                                         { UserPageList.slice(0, 10).map((item) => (
                                             <TouchableOpacity 
                                             key={item.id}

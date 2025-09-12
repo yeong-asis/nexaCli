@@ -1,30 +1,27 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { CommentLogProps, WorkflowLogProps } from '../objects';
-import { COLORS } from '../../themes/theme';
+import { BLUEUSEFULCOLOR, COLORS } from '../../themes/theme';
 
 const CommentLogCard: React.FC<CommentLogProps> = ({
     pkkey,
     personName,
     comment,
-    createdBy,
-    lastUpdatedDate,
-    lastUpdatedBy
+    logOn,
+    status,
 }) => {
 
     return (
         <View style={[styles.CardContainer, {}]}>
-            <View style={{flexDirection: "row", alignSelf: "flex-start",}}>
-                {/* <View style={{flexDirection: "column", width: "30%"}}> */}
-                <View style={{width: "30%"}}>
-                    <Text style={[styles.TextTitle, {}]}>{personName}: </Text>
-                    {/* <Text style={[styles.TextDescription, {}]}>{lastUpdatedDate}</Text> */}
+            <View style={{flexDirection: "column", width: "100%"}}>
+                <View>
+                    <Text style={[styles.TextTitle, {color: BLUEUSEFULCOLOR}]}>{personName}</Text>
                 </View>
-                <View style={{width: "40%", alignSelf: "flex-start",}}>
-                    <Text style={[styles.TextDescription, {}]}>{comment}</Text>
+                <View>
+                    <Text style={[styles.TextTitle, {}]}>{comment}</Text>
                 </View>
-                <View style={{width: "30%", alignSelf: "flex-end",}}>
-                    <Text style={[styles.TextTitle, {}]}>{lastUpdatedDate}</Text>
+                <View>
+                    <Text style={[styles.TextDescription, {textAlign: "right"}]}>{logOn}</Text>
                 </View>
             </View>
         </View>
@@ -37,6 +34,7 @@ const styles = StyleSheet.create({
         width: "100%", 
         borderWidth: 0.4,
         padding: 10,
+        paddingVertical: 12,
         marginVertical: 0,
     },
     TextTitle: {
@@ -46,10 +44,8 @@ const styles = StyleSheet.create({
         textAlign: "left",
     },
     TextDescription: {
-        color: COLORS.primaryBlackHex,
-        fontSize: 13,
-        textAlign: "left",
-        // fontWeight: "bold",
+        color: COLORS.primaryLightGreyHex,
+        fontSize: 10,
     },
 });
 

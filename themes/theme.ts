@@ -87,9 +87,11 @@ export const FONTFAMILY: FontFamily = {
 
 export const BACKGROUNDCOLORCODE = COLORS.secondaryLightGreyHex;
 
-export const HEADERBACKGROUNDCOLORCODE = "#007ed9";
-// export const HEADERBACKGROUNDCOLORCODE = "#0E376A";
-// export const HEADERBACKGROUNDCOLORCODE = COLORS.primaryBlackHex;
+export const HEADERBACKGROUNDCOLORCODE = "#0B3D2E";
+// export const HEADERBACKGROUNDCOLORCODE = "#3F51B5";
+// export const HEADERBACKGROUNDCOLORCODE = "#007ed9";
+
+export const BLUEUSEFULCOLOR = "#3F51B5";
 
 export const MAINCOLOR = COLORS.primaryBlackHex;
 

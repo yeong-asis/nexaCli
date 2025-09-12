@@ -7,7 +7,7 @@ export const UserPageList = [
         icon: (
             <Image
                 style={{ width: 80, height: 80 }}
-                source={require('../../assets/Task.png')} 
+                source={require('../../assets/serviceIcon.png')} 
                 // source={colorScheme === 'light' ? require('../assets/DashboardLight.png') : require('../assets/DashboardDark.png')} 
             />
         ),
@@ -20,12 +20,14 @@ export const UserPageList = [
         icon: (
             <Image
                 style={{ width: 80, height: 80 }}
-                source={require('../../assets/Workflow2.png')} 
+                source={require('../../assets/stockIcon.png')} 
                 // source={colorScheme === 'light' ? require('../assets/FlowLight.png') : require('../assets/WorkflowDark.png')} 
             />
         ),
-        title: "Workflow",
-        navigate: "WorkflowList",
+        // title: "Workflow",
+        // navigate: "WorkflowList",
+        title: "SMQ",
+        navigate: "MainStock",
     },
     {
         id: 3,
@@ -33,7 +35,7 @@ export const UserPageList = [
         icon: (
             <Image
                 style={{ width: 80, height: 80 }}
-                source={require('../../assets/messageIcon.png')} 
+                source={require('../../assets/reportIcon.png')} 
             />
         ),
         title: "Daily Task",

@@ -77,6 +77,7 @@ const LoginScreen = ({navigation}: any) => {
                     await AsyncStorage.setItem('UserID', responseData.User.Id.toString());
                     await AsyncStorage.setItem('RoleID', responseData.Role.Id.toString());
                     await AsyncStorage.setItem('FullName', responseData.User.Name);
+                    await AsyncStorage.setItem('Password', password);
                     await AsyncStorage.setItem('Email', responseData.User.Email);
                     navigation.navigate("Tab", { screen: 'Dashboard'});
                     setProcessData(false);
@@ -111,67 +112,81 @@ const LoginScreen = ({navigation}: any) => {
                     {/* Logo */}
                     <View style={[LoginManagementCSS.widthAndAdjustment]}>
                         <Image 
-                        source={require('../../assets/asislogo.png')} 
+                        source={require('../../assets/NexaLogo.png')} 
                         style={{ 
-                            height: Dimensions.get("screen").height * 0.35, 
-                            width: Dimensions.get("screen").width *0.8, 
+                            height: Dimensions.get("screen").height * 0.2, 
+                            marginVertical: 50,
                             resizeMode: 'contain', 
                             alignSelf: "center",
                         }} />
                     </View>
 
                     {/* Form Card */}
-                    <View style={[LoginManagementCSS.widthAndAdjustment, LoginManagementCSS.CardShadow]}>
-                        <View style={[LoginManagementCSS.CardContainer, {padding: 25, }]}>
-                            <View style={{flexDirection: "column", marginTop: 20}}>
-                                <Text style={LoginManagementCSS.TextInputFont}>Please enter your credential</Text>
-                            </View>
-
-                            <View style={{flexDirection: "column", marginTop: 20}}>
-                                <TextInput
-                                    label="Email"
-                                    value={userName}
-                                    onChangeText={setUserName}
-                                    returnKeyType="next"
-                                    onSubmitEditing={() => inputRef.current?.focus()}
-                                />
-                                {usernameHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Email can't be empty</Text>}
-                            </View>
-
-                            <View style={{flexDirection: "column", marginTop: 20}}>
-
-                                <TouchableOpacity style={ButtonCSS.showPasswordButton}
-                                    onPress={() => {
-                                        if (ishide == (true)) {
-                                            setishide(false)
-                                        } else {
-                                            setishide(true)
-                                        }
-                                    }}>
-                                    {ishide == true ?
-                                    (
-                                        <Octicons name="eye" color={COLORS.primaryLightGreyHex} size={30} style={ButtonCSS.showPasswordIcon} />
-                                    ) : (
-                                        <Octicons name="eye-closed" color={COLORS.primaryLightGreyHex} size={30} style={ButtonCSS.showPasswordIcon} />
-                                    )}
-                                </TouchableOpacity>
-                                <TextInput
-                                    secureTextEntry={ishide}
-                                    label="Password"
-                                    value={password}
-                                    returnKeyType="done"
-                                    onChangeText={setPassword}
-                                    ref={inputRef}
-                                />
-                                {passwordHelperText && <Text style={{ color: 'red', marginTop: 5 }}>Password can't be empty</Text>}
-                            </View>
-
-                            <TouchableOpacity style={LoginManagementCSS.Button} onPress={() => {CallLoginAPI(userName, password)}}>
-                                <Text style={LoginManagementCSS.ButtonText}> Login </Text>
-                            </TouchableOpacity>
-
-                        </View>
+                    <View style={{flexDirection: "column"}}>
+                        <Text style={LoginManagementCSS.TextTitleFont}>SIGN IN</Text>
                     </View>
+
+                    <View style={{flexDirection: "column", marginTop: 20}}>
+                        <Text style={LoginManagementCSS.TextInputFont}>Sign Into your Account</Text>
+                    </View>
+
+                    <View style={{flexDirection: "column", marginTop: 20}}>
+                        <TextInput
+                            label="Email"
+                            value={userName}
+                            onChangeText={setUserName}
+                            returnKeyType="next"
+                            onSubmitEditing={() => inputRef.current?.focus()}
+                            style={LoginManagementCSS.TextInputDesign}
+                        />
+                        {usernameHelperText && <View style={LoginManagementCSS.HelperCSS}><Text style={{ color: 'red', }}>Email can't be empty</Text></View>}
+                    </View>
+
+                    <View style={{flexDirection: "column", marginTop: 20}}>
+                        <TouchableOpacity style={LoginManagementCSS.showPasswordButton}
+                            onPress={() => {
+                                if (ishide == (true)) {
+                                    setishide(false)
+                                } else {
+                                    setishide(true)
+                                }
+                            }}>
+                            {ishide == true ?
+                            (
+                                <Octicons name="eye" color={COLORS.primaryLightGreyHex} size={30} style={LoginManagementCSS.showPasswordIcon} />
+                            ) : (
+                                <Octicons name="eye-closed" color={COLORS.primaryLightGreyHex} size={30} style={LoginManagementCSS.showPasswordIcon} />
+                            )}
+                        </TouchableOpacity>
+                        <TextInput
+                            secureTextEntry={ishide}
+                            label="Password"
+                            value={password}
+                            returnKeyType="done"
+                            onChangeText={setPassword}
+                            ref={inputRef}
+                            style={LoginManagementCSS.TextInputDesign}
+                        />
+                        {passwordHelperText && <View style={LoginManagementCSS.HelperCSS}><Text style={{ color: 'red' }}>Password can't be empty</Text></View>}
+                    </View>
+
+                    <TouchableOpacity
+                        onPress={() => {
+                            Snackbar.show({
+                            text: "Forgot Password clicked",
+                            duration: Snackbar.LENGTH_SHORT,
+                            });
+                        }}
+                        style={{ alignSelf: "center", marginTop: 8, width: "80%" }}
+                    >
+                        <Text style={{ color: COLORS.secondaryLightGreyHex, fontSize: 14, textAlign: "right" }}>
+                            Forgot Password?
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={LoginManagementCSS.Button} onPress={() => {CallLoginAPI(userName, password)}}>
+                        <Text style={LoginManagementCSS.ButtonText}> Login </Text>
+                    </TouchableOpacity>
                 </View>
             </KeyboardAvoidWrapper>
             

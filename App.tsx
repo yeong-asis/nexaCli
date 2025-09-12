@@ -26,6 +26,7 @@ import DetailStockScreen from './pages/screens/Workflows/DetailStockScreen';
 import TaskListScreen from './pages/screens/DailyTask/MainTaskScreen';
 import AddTaskScreen from './pages/screens/DailyTask/AddTaskScreen';
 import TaskDetailScreen from './pages/screens/DailyTask/DetailTaskScreen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const Stack = createNativeStackNavigator();
 
@@ -55,7 +56,7 @@ const App = () => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
     {loading ? (
       <View style={{ flex: 1, marginVertical: Dimensions.get('screen').height / 100 * 10 }}>
         <ActivityIndicator size={40} color="#000000" />
@@ -87,7 +88,7 @@ const App = () => {
         </Stack.Navigator>
       </NavigationContainer>
     )}
-    </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 

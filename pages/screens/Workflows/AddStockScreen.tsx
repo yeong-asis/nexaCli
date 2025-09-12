@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
@@ -18,6 +18,8 @@ type ProductItem = {
     name: string;
     quantity: string;
     notes: string;
+    unitPrice: string;
+    discount: string;
 };
 
 const AddStockScreen = ({ navigation }: { navigation: any }) => {
@@ -40,25 +42,23 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
     const [receiveFromName, setReceiveFromName] = useState('');
     const [receiveFromOptions, setReceiveFromOptions] = useState<SelectionItem[]>([]);
 
-    const [movementType, setMovementType] = useState('IN');
+    const [movementType, setMovementType] = useState('1');
     const [movementTypeName, setMovementTypeName] = useState('IN');
-    const movementTypeOptions = [{'pkkey':'IN', 'name':'IN'}, {'pkkey':'OUT', 'name':'OUT'}];
+    const movementTypeOptions = [{'pkkey':'1', 'name':'IN'}, {'pkkey':'2', 'name':'OUT'}];
 
     const [purpose, setPurpose] = useState("");
     const [remark, setRemark] = useState("");
     const [attachments, setAttachments] = useState<any[]>([]);
 
     // Products Part
-    const [products, setProducts] = useState<ProductItem[]>([ { id: '', name: '', quantity: '', notes: '' }, ]);
+    const [products, setProducts] = useState<ProductItem[]>([ { id: '', name: '', quantity: '', notes: '', unitPrice: "", discount: "" }, ]);
     const [productOptions, setProductOption] = useState<SelectionItem[]>([]);
 
     const [focusedDropdownIndex, setFocusedDropdownIndex] = useState<number | null>(null);
 
     useEffect(() => {
         (async () => {
-            const getUserID = await AsyncStorage.getItem('UserID') ?? "";
-            setRequester(getUserID);
-            await fetchedSelectionAPI(getUserID);
+            await fetchedSelectionAPI();
         })();
     }, []);
 
@@ -85,76 +85,79 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
-    const fetchedSelectionAPI = async(selectedUser: any) => {
+    const fetchedSelectionAPI = async() => {
         setProcessData(true);
-        // console.log(selectedUser)
+
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        setRequester(getUserID);
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
 
         try {
-            // user list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getUser` 
-            ).then(async response => {
-                
-                const responseData=response.data;
-                setRequesterOptions(responseData);
+            const response = await axios.post(
+                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                {
+                    "APIAction": "GetPreloadData"
+                },
+                {
+                    auth: {
+                        username: getUserEmail,
+                        password: getUserPassword
+                    }
+                }
+            );
 
-                const user = responseData.find((u: any) => u.pkkey === selectedUser);
+            const responseData=response.data;
+            if(responseData.Acknowledge==0) {
+
+                const getRequesters=responseData.Requesters;
+                const requesterOptions: SelectionItem[] = getRequesters.map((item: any) => ({
+                    pkkey: String(item.Id),
+                    name: item.Name,
+                }));
+                setRequesterOptions(requesterOptions);
+                const user = responseData.Requesters.find((u: any) => u.Id === getUserID);
                 setRequesterName(user?.fullName ?? '');
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
 
-            // customer list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getCustomer` 
-            ).then(async response => {  
-                const responseData=response.data;
-                setDeliverToOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+                const getCategory=responseData.Categories;
+                const categoryOptions: SelectionItem[] = getCategory.map((item: any) => ({
+                    pkkey: String(item.Id),
+                    name: item.Name,
+                }));
+                setCategoryOptions(categoryOptions);
 
-            // supplier list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getSupplier` 
-            ).then(async response => {
-                const responseData=response.data;
-                setReceiveFromOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+                const getReceiveFrom=responseData.ReceiveFrom;
+                const receiveFromOptions: SelectionItem[] = getReceiveFrom.map((item: any) => ({
+                    pkkey: String(item.DEARID),
+                    name: item.Name,
+                }));
+                setReceiveFromOptions(receiveFromOptions);
 
-            // category list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getSMQCategory` 
-            ).then(async response => {
-                const responseData=response.data;
-                setCategoryOptions(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+                const getDeliverTo=responseData.DeliverTo;
+                const deliverToOptions: SelectionItem[] = getDeliverTo.map((item: any) => ({
+                    pkkey: String(item.DEARID),
+                    name: item.Name,
+                }));
+                setDeliverToOptions(deliverToOptions);
 
-            // product list
-            await axios.get( 
-                `${IPAddress}/api/dashboard/getProductList`
-            ).then(async response => {
-                const responseData=response.data;
-                setProductOption(responseData);
-                
-            }).catch(error => {
-                setProcessData(false);
-                console.log(error);
-            });
+                const getProducts=responseData.Products;
+                const productsOptions: SelectionItem[] = getProducts.map((item: any) => ({
+                    pkkey: String(item.DEARID),
+                    name: item.Name,
+                    notes: item.Notes == null ? "" : item.Notes,
+                    unitPrice: item.UnitPrice,
+                    discount: item.Discount,
+                }));
+                setProductOption(productsOptions);
 
-            setProcessData(false);
+                setProcessData(false);
+            }else{
+                Snackbar.show({
+                    text: 'Connect Server failed, Please try again.',
+                    duration: Snackbar.LENGTH_LONG,
+                });
+                setProcessData(false);
+            }
 
         }catch (error: any) {
             setProcessData(false);
@@ -173,128 +176,146 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
         products: any,
         attachments: any
     ) => {
-        const checkUserFullName = await AsyncStorage.getItem('FullName') ?? "";
-        const checkUserEmail = await AsyncStorage.getItem('Email') ?? "";
-        const todayDate = new Date().toISOString();
+        setProcessData(true);
+        let emtpy = false;
 
-        try {
-            const smqRequest = {
-                Id: 0,
-                RequesterID: requestID,
-                ValidatorRemark: null,
-                ApproverRemark: null,
-                ImplementerRemark: null,
+        if (category === '') {
+            Snackbar.show({
+                text: 'Category can not be empty',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
 
-                RequesterList: [
+        if (receiveFrom === '') {
+            Snackbar.show({
+                text: 'Receive From can not be empty',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (deliverTo === '') {
+            Snackbar.show({
+                text: 'Deliver to can not be empty',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (products.length<=1 && products[0].id=="") {
+            Snackbar.show({
+                text: 'Please choose at least one product',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }else if (products.length<=1 && products[0].quantity=="") {
+            Snackbar.show({
+                text: 'Quantity can not be zero',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (!emtpy) {
+            const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+            const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+            const todayDate = new Date().toISOString();
+
+            try {
+                const formattedProducts = products.map((p: any) => ({
+                    DEARID: p.id,
+                    Notes: p.notes || "",
+                    Quantity: Number(p.quantity) || 0,
+                    UnitPrice: Number(p.unitPrice) || 0,
+                    Discount: Number(p.discount) || 0,
+                    Amount: (Number(p.quantity) || 0) * (Number(p.unitPrice) || 0)
+                }));
+
+                const request = {
+                    "APIAction": "AddSMQ",
+                    "SMQ": {
+                        "RequesterID": Number(requestID),
+                        "Category": Number(category),
+                        "MovementType": Number(movementType),
+                        "ReceiveFrom": receiveFrom,
+                        "DeliverTo": deliverTo,
+                        "Purpose": purpose,
+                        "PTRID": 0,
+                        "PMXID": 0,
+                        "SO": "",
+                        "RMA": "",
+                        "ReceiverSignature": "",
+                        "DelivererSignature": "",
+                        "Remark": remark,
+                        "SKIPValidator": false
+                    },
+                    "Products": formattedProducts,
+                    "Documents": [
+                        {
+                            "FileName": "ERD.png",
+                            "FileExtension": ".png",
+                            "FileBase64": "",
+                            "FileSize": 0
+                        }
+                    ]
+                }
+
+                console.log(request);
+
+                const response = await axios.post(
+                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                    request,
                     {
-                    Id: requestID,
-                    BranchID: 0,
-                    TimeZoneID: 0,
-                    UserName: null,
-                    Password: null,
-                    Name: checkUserFullName,
-                    Email: checkUserEmail,
-                    Department: null,
-                    Role: null,
-                    Superior: null,
-                    IsActive: true,
-                    IsEnable: true,
-                    IsVerified: false,
-                    Salt: null,
-                    EncryptedPassword: null,
-                    CreatedBy: null,
-                    CreatedOn: null,
-                    LastUpdatedBy: null,
-                    LastUpdatedOn: null,
+                        auth: {
+                            username: getUserEmail,
+                            password: getUserPassword
+                        }
                     }
-                ],
+                );
 
-                ValidatorIDList: null,
-                ApproverList: null,
-                ImplementerList: null,
+                const responseData=response.data;
 
-                ProductList: products.map((p: { productID: any; productName: any; sku: any; quantity: any; description: any; notes: any; }) => ({
-                    Id: 0,
-                    BranchID: 0,
-                    SMQID: 0,
-                    ProductID: p.productID,
-                    ProductName: p.productName ?? null,
-                    SKU: p.sku ?? null,
-                    StockOnHand: null,
-                    Quantity: p.quantity,
-                    Description: p.description ?? null,
-                    Notes: p.notes ?? null,
-                    Location: null,
-                    LocationName: null,
-                    UnitPrice: null,
-                    Discount: null,
-                    Amount: null,
-                    CreatedBy: null,
-                    CreatedOn: todayDate,
-                    LastUpdatedBy: null,
-                    LastUpdatedOn: null,
-                })),
+                console.log(responseData);
 
-                UploadAttachmentList: attachments,
-                RequesterAttachment: null,
-                WorkflowStatus: 1,
-                KeyWord: null,
+                if(responseData.Acknowledge==0) {
+                    Alert.alert(
+                        "Success",
+                        "Add SMQ Success.",
+                        [
+                            {
+                                text: "OK",
+                                onPress: () => {
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: "MainStock" }],
+                                    });
+                                },
+                            },
+                        ],
+                        { cancelable: false }
+                    );
+                }else{
+                    Snackbar.show({
+                        text: 'Add SMQ failed.',
+                        duration: Snackbar.LENGTH_LONG,
+                    });
+                    setProcessData(false);
+                }
 
-                SMQDetail: {
-                    Id: 0,
-                    BranchID: 0,
-                    SMQCode: null,
-                    Requester: requestID,
-                    Category: category,
-                    MovementType: movementType=="IN" ? "1" : "2",
-                    ReceiveFrom: receiveFrom,
-                    DeliverTo: deliverTo,
-                    Purpose: purpose,
-                    PTRID: null,
-                    PMXID: null,
-                    SO: null,
-                    RMA: null,
-                    ReceiverSignature: null,
-                    DelivererSignature: null,
-                    Remark: remark,
-                    ValidatorRemark: null,
-                    ApproverRemark: null,
-                    ImplementerRemark: null,
-                    SKIPValidator: false,
-                    Status: 0,
-                    IsValidateNotificationSent: false,
-                    ValidateNotificationSentDate: null,
-                    IsApprovalNotificationSent: false,
-                    ApprovalNotificationSentDate: null,
-                    IsAcceptNotificationSent: false,
-                    AcceptNotificationSentDate: null,
-                    CreatedBy: null,
-                    CreatedOn: null,
-                    LastUpdatedBy: null,
-                    LastUpdatedOn: null,
-                },
-
-                SMQList: null,
-                Comment: null,
-                CommentDetails: null,
-                UserColumn: null,
-                UserID: 0,
-                UserName: null,
-            };
-
-            // // 🚀 POST request
-            // const response = await axios.post(
-            //     "https://your-api-server.com/api/smq/submit",
-            //     smqRequest,
-            //     {
-            //         headers: { "Content-Type": "application/json" },
-            //     }
-            // );
-
-            // console.log("✅ Submitted successfully:", response.data);
-
-        } catch (error: any) {
-            console.error("❌ Submission failed:", error.message);
+            } catch (error: any) {
+                Snackbar.show({
+                    text: 'Connect Server failed, Please try again.',
+                    duration: Snackbar.LENGTH_LONG,
+                });
+                console.log(error)
+                setProcessData(false);
+            }
         }
     }
 
@@ -328,30 +349,36 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 overflow: 'hidden',
                             }]}>
                                 <View style={ButtonCSS.SegmentedContainer}>
-                                    <Pressable 
-                                        style={[ButtonCSS.SegmentedButton, {
-                                            borderTopLeftRadius: 20, 
-                                            borderBottomLeftRadius: 20, 
-                                            backgroundColor: selectedType=="General" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
-                                        }]}
-                                        onPress={()=> {
-                                            setSelectedType("General");
-                                        }}
+                                    {["General", "Products"].map((type, index) => {
+                                    const isSelected = selectedType === type;
+
+                                    return (
+                                    <Pressable
+                                        key={type}
+                                        onPress={() => setSelectedType(type)}
+                                        style={[
+                                        ButtonCSS.SegmentedButton,
+                                        {
+                                            backgroundColor: isSelected ? HEADERBACKGROUNDCOLORCODE : "transparent",
+                                            borderBottomWidth: isSelected ? 0 : 2, // underline for unselected
+                                            borderBottomColor: isSelected ? "transparent" : COLORS.primaryGreyHex,
+                                            borderRadius: isSelected ? 8 : 0, // rounded corners only for selected
+                                            marginHorizontal: 5,
+                                        },
+                                        ]}
                                     >
-                                        <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="General" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>General</Text>
-                                    </Pressable>
-                                    <Pressable 
-                                        style={[ButtonCSS.SegmentedButton, {
-                                            borderTopRightRadius: 20, 
-                                            borderBottomRightRadius: 20, 
-                                            backgroundColor: selectedType=="Products" ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryWhiteHex
-                                        }]}
-                                        onPress={()=> {
-                                            setSelectedType("Products");
+                                        <Text
+                                        style={{
+                                            color: isSelected ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex,
+                                            fontWeight: isSelected ? "bold" : "normal",
+                                            textAlign: "center",
                                         }}
-                                    >
-                                        <Text style={[ButtonCSS.SegmentedText, {color: selectedType=="Products" ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex}]}>Products</Text>
+                                        >
+                                        {type === "More" ? "More Info" : type}
+                                        </Text>
                                     </Pressable>
+                                    );
+                                })}
                                 </View>
 
                                 {(selectedType=="General") ? (
@@ -370,10 +397,10 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         activeColor={COLORS.primaryVeryLightGreyHex}
                                         data={requesterOptions}
                                         search
-                                        searchPlaceholder="Search Requester..."
+                                        searchPlaceholder="Search.."
                                         labelField="name"
                                         valueField="pkkey"
-                                        placeholder={requesterName || 'Select Requester'}
+                                        placeholder={requesterName || 'Select..'}
                                         value={requester}
                                         onChange={item => {
                                             setRequester(item.pkkey);
@@ -403,7 +430,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             activeColor={COLORS.primaryVeryLightGreyHex}
                                             data={categoryOptions}
                                             search
-                                            searchPlaceholder="Search Category..."
+                                            searchPlaceholder="Search.."
                                             labelField="name"
                                             valueField="pkkey"
                                             placeholder={categoryName || 'Select Category'}
@@ -438,7 +465,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={movementTypeName || 'Select'}
+                                            placeholder={movementTypeName || 'Select..'}
                                             value={movementType}
                                             onChange={item => {
                                                 setMovementType(item.pkkey);
@@ -474,7 +501,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={receiveFromName || 'Select...'}
+                                            placeholder={receiveFromName || 'Select..'}
                                             value={receiveFrom}
                                             onChange={item => {
 
@@ -515,7 +542,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             searchPlaceholder="Search..."
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={deliverToName || 'Select....'}
+                                            placeholder={deliverToName || 'Select..'}
                                             value={deliverTo}
                                             onChange={item => {
                                                 setDeliverTo(item.pkkey);
@@ -542,7 +569,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         numberOfLines={5}
                                         value={purpose}
                                         onChangeText={setPurpose}
-                                        style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
+                                        style={AddItemScreenCSS.TextArea} 
                                         placeholder="Enter Purpose here"
                                     />
                                 </View>
@@ -558,7 +585,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         numberOfLines={5}
                                         value={remark}
                                         onChangeText={setRemark}
-                                        style={{ textAlignVertical: 'top' }} // Ensures text starts from top-left
+                                        style={AddItemScreenCSS.TextArea}
                                         placeholder="Enter Remark here"
                                     />
                                 </View>
@@ -575,13 +602,14 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         backgroundColor: COLORS.primaryLightGreyHex,
                                         borderRadius: 6,
                                         alignSelf: 'flex-start',
+                                        marginVertical: 8,
                                         }}
                                     >
                                         <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
                                     </TouchableOpacity>
 
                                     {attachments.map((file, idx) => (
-                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
                                         {file.type?.startsWith('image/') && (
                                             <Image
                                                 source={{ uri: file.uri }}
@@ -619,8 +647,8 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             maxHeight={200}
                                             labelField="name"
                                             valueField="pkkey"
-                                            placeholder={!item.name ? 'Select product...' : item.name}
-                                            searchPlaceholder="Search products..."
+                                            placeholder={!item.name ? 'Select..' : item.name}
+                                            searchPlaceholder="Search.."
                                             value={item.id}
                                             onFocus={() => setFocusedDropdownIndex(index)}
                                             onBlur={() => setFocusedDropdownIndex(null)}
@@ -645,6 +673,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                                 setProducts(updated);
                                             }}
                                             placeholder="0"
+                                            style={AddItemScreenCSS.NormalTextInput}
                                             />
                                         </View>
 
@@ -656,11 +685,12 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                                 numberOfLines={3}
                                                 value={item.notes}
                                                 onChangeText={(text) => {
-                                                const updated = [...products];
-                                                updated[index].notes = text;
-                                                setProducts(updated);
+                                                    const updated = [...products];
+                                                    updated[index].notes = text;
+                                                    setProducts(updated);
                                                 }}
                                                 placeholder="Enter any notes"
+                                                style={AddItemScreenCSS.TextArea}
                                             />
                                         </View>
 
@@ -681,7 +711,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
-                                        setProducts([...products, { id: '', name: '', quantity: '',  notes: '' }]);
+                                        setProducts([...products, { id: '', name: '', quantity: '',  notes: '',  unitPrice: '',  discount: '' }]);
                                     }}
                                     >
                                     <Text style={AddItemScreenCSS.AddItemText}>Add Product</Text>
@@ -689,7 +719,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 </>
                                 )}
 
-                                <TouchableOpacity style={AddItemScreenCSS.Button} onPress={() => { 
+                                <TouchableOpacity style={[AddItemScreenCSS.Button, {width: "40%"}]} onPress={() => { 
                                     submitAddStock(
                                         requester,
                                         category,

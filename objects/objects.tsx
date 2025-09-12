@@ -86,21 +86,22 @@ export interface DailyTaskProps {
 export interface WorkflowProps {
     pkkey: number,
     code: string,
-    description: string,
-    productSeries: string,
-    productStage: string,
     status: string,
-    totalAmount: string,
-    currencyName: string,
+    statusID: string,
     remark: string,
-    requester: string,
-    dueDate: string,
-    supplierName: string,
-    movementType: string,
-    debitAccount: string,
-    shipping: string,
-    getDate: string,
+    requesterID: string,
+    RequesterName: string,
+    receiveFromID: string,
+    receiveFromName: string,
+    deliverToID: string,
+    deliverToName: string,
+    MovementType: string,
+    MoveTypeName: string,
+    categoryID: string,
+    categoryName: string,
+    NEXTPIC: string,
     createdDate: string,
+    SKIPValidator: string
 }
 
 export interface ProductProps {
@@ -162,18 +163,27 @@ export interface AcknowledgeProps {
 
 export interface WorkflowLogProps {
     pkkey: string;
-    logDetail: string;
-    lastUpdatedDate: string;
-    lastUpdatedBy: string;
+    SMQID: string;
+    process: string;
+    personName: string;
+    comment: string;
+    logOn: string;
 }
 
 export interface CommentLogProps {
     pkkey: string;
+    SMQID: string;
+    process: string;
     personName: string;
     comment: string;
-    createdBy: string;
-    lastUpdatedDate: string;
-    lastUpdatedBy: string;
+    logOn: string;
+    status: string;
+    parentCommentID: string;
+}
+
+export interface Validators {
+    pkkey: string;
+    name: string;
 }
 
 export interface AttachmentsProps {
