@@ -187,11 +187,11 @@ export interface Validators {
 }
 
 export interface AttachmentsProps {
-    pkkey: string;
-    fileName: string;
-    attachmentLink: string;
-    lastUpdatedDate: string;
-    lastUpdatedBy: string;
+    uri: string;
+    name: string;
+    type: string;
+    size: number;
+    base64: string | null;
 }
 
 export interface WorkflowInfoProps {

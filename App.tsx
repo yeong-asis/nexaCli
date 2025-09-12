@@ -27,6 +27,7 @@ import TaskListScreen from './pages/screens/DailyTask/MainTaskScreen';
 import AddTaskScreen from './pages/screens/DailyTask/AddTaskScreen';
 import TaskDetailScreen from './pages/screens/DailyTask/DetailTaskScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SettingScreen } from './pages/screens/SettingScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -67,6 +68,7 @@ const App = () => {
           <Stack.Screen name="Login" component={LoginScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Tab" component={TabNavigator} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="Setting" component={SettingScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="ViewAttachmnet" component={ViewAttachmentScreen} options={{animation: 'slide_from_bottom'}} />
           

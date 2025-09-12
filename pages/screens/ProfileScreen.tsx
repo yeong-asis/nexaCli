@@ -2,16 +2,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { Clipboard, Dimensions, Image, Platform, SafeAreaView, StatusBar, Text, TouchableOpacity, View } from "react-native";
-import { defaultCSS, HeaderCSS, LoginManagementCSS, ProfileCSS } from '../../themes/CSS';
+import { AddItemScreenCSS, defaultCSS, HeaderCSS, LoginManagementCSS, ProfileCSS } from '../../themes/CSS';
 import { BACKGROUNDCOLORCODE, COLORS } from '../../themes/theme';
 import LoadingAnimation from '../functions/LoadingAnimation';
 import HeaderBar from '../functions/HeaderBar';
 import GradientBGIcon from '../../objects/GradientBGIcon';
 import Octicons from 'react-native-vector-icons/Octicons';
 import Snackbar from 'react-native-snackbar';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export const ProfileScreen = ({navigation}: any) => {
     const [processData, setProcessData] = useState(false);
+    const tabBarHeight = useBottomTabBarHeight();
     const [FullName, setFullName] = useState("");
     const [Email, setEmail] = useState("");
     const [token, setToken] = useState("");
@@ -44,120 +47,63 @@ export const ProfileScreen = ({navigation}: any) => {
     }
 
     return (
-        <SafeAreaView style={[defaultCSS.ScreenContainer, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
+        <View style={defaultCSS.ScreenContainer}>
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
-
+            <HeaderBar title={`${"Profile"}`} checkBackBttn={false} />
             {processData == true ? (
                 <View style={{ alignSelf: "center", }}>
                     <LoadingAnimation />
                 </View>
             ) : (
-                <View style={{ flex: 1 }}>
-                    <View style={HeaderCSS.SetHeaderCSS}>
-                        <HeaderBar title={`Profile: `} checkBackBttn={false} />
-                    </View>
-                    <View style={{alignItems: "center",}}>
-                        <View style={{
-                            padding: 30,
-                            marginVertical: 5,
-                        }}>
-                            <Image 
-                                style={{
-                                    height: 150, 
-                                    width: 150, 
-                                    borderRadius: 80,
-                                    resizeMode: 'cover',
-                                    alignSelf: "center",
-                                }} 
-                                source={require('../../assets/personIcon.png')}
-                            />
-                        </View>
-
-                        <View style={{flexDirection: "column", width: Dimensions.get("screen").width*0.8,}}>
-                            <Text style={[defaultCSS.TextBold, {  }]}> 
-                                {FullName}
-                            </Text>
-                            <Text style={[defaultCSS.TextBold, { fontSize: 14, color: COLORS.secondaryLightGreyHex}]}> 
-                                {Email}
-                            </Text>
-                        </View>
+            <View style={{width: Dimensions.get("screen").width, height: Dimensions.get("screen").height*0.9, backgroundColor: COLORS.primaryVeryLightGreyHex, paddingTop: 20}}>
+                <View style={{ alignSelf: "center", }}>
+                    <View style={{
+                        width: 300,
+                        height: 300,
+                        borderRadius: 300/2,
+                        backgroundColor: 'white',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 4,
+                        elevation: 5,     
+                        alignSelf: "center", 
+                    }}>
+                        {/* Person icon in middle */}
+                        <Ionicons name="person-outline" size={200} color={COLORS.secondaryLightGreyHex} />
                     </View>
 
-                    <View style={[LoginManagementCSS.widthAndAdjustment, LoginManagementCSS.CardShadow, {marginTop: 50}]}>
-                        <View style={[{
-                            backgroundColor: COLORS.primaryWhiteHex,
-                            borderRadius: 16,
-                            overflow: 'hidden',
-                        }]}>
-                            <View style={ProfileCSS.mainContainerList}>
-                                <TouchableOpacity style={ProfileCSS.ButtonContainer} onPress={async () => {
-                                    if (token) {
-                                        Clipboard.setString(token);
-                                        Snackbar.show({
-                                            text: 'Token copied to clipboard!',
-                                            duration: Snackbar.LENGTH_LONG,
-                                        });
-                                    } else {
-                                        Snackbar.show({
-                                            text: 'No Token can be found!',
-                                            duration: Snackbar.LENGTH_LONG,
-                                        });
-                                    }
-                                }}>
-                                    <View style={ProfileCSS.iconCircle}>
-                                        {/* <GradientBGIcon name={"info"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
-                                        <Octicons name="info" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
-                                    </View>
-                                    <Text style={ProfileCSS.ButtonTextCSS}> {"More Info"}</Text>    
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={ProfileCSS.LineList}></View>
-
-                            <View style={ProfileCSS.mainContainerList}>
-                                <TouchableOpacity style={ProfileCSS.ButtonContainer} onPress={async () => {}}>
-                                    <View style={ProfileCSS.iconCircle}>
-                                        {/* <GradientBGIcon name={"settings"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
-                                        <Octicons name="gear" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
-                                    </View>
-                                    <Text style={ProfileCSS.ButtonTextCSS}> {"Settings"}</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={ProfileCSS.LineList}></View>
-
-                            <View style={{
-                                // backgroundColor: COLORS.primaryRedHex, 
-                                width: "100%"
-                            }}>
-                                <TouchableOpacity style={[ProfileCSS.ButtonContainer, {}]} onPress={async () => {
-                                    try {
-                                        // await AsyncStorage.removeItem("UserID");
-                                        await AsyncStorage.multiRemove([
-                                            "UserID", 
-                                            "Department",  
-                                            "FullName", 
-                                            "Email"
-                                        ]);
-                            
-                                        navigation.navigate("Login");
-                                    } catch (error) {
-                                        console.error("Logout Error:", error);
-                                    }
-                                }}>
-                                    <View style={[ProfileCSS.iconCircle, {
-                                        // backgroundColor: COLORS.primaryRedHex
-                                    }]}>
-                                        {/* <GradientBGIcon name={"log-out"} size={40} color={COLORS.primaryDarkGreyHex} /> */}
-                                        <Octicons name="sign-out" color={COLORS.primaryDarkGreyHex} size={40} style={ProfileCSS.iconText}  />
-                                    </View>
-                                    <Text style={[ProfileCSS.ButtonTextCSS, {color: COLORS.primaryDarkGreyHex}]}> {"Logout"}</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                    <View style={{flexDirection: "column", marginVertical: 40 }}>
+                        <Text style={[defaultCSS.TextBold, {}]}> 
+                            {FullName}
+                        </Text>
+                        <Text style={[defaultCSS.TextDescript, {}]}> 
+                            {Email}
+                        </Text>
                     </View>
                 </View>
+
+                <TouchableOpacity style={[AddItemScreenCSS.Button, {width: "40%", marginTop: 20}]} onPress={async () => { 
+                    try {
+                        // await AsyncStorage.removeItem("UserID");
+                        await AsyncStorage.multiRemove([
+                            "UserID", 
+                            "Department",  
+                            "FullName", 
+                            "Email"
+                        ]);
+            
+                        navigation.navigate("Login");
+                    } catch (error) {
+                        console.error("Logout Error:", error);
+                    }
+                }}>
+                    <Text style={[AddItemScreenCSS.ButtonText, {fontSize: 24}]}> Sign Out </Text>
+                </TouchableOpacity>
+            </View>
             )}
-        </SafeAreaView>
+        </View>
     );
 }

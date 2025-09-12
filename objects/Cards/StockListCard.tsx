@@ -12,16 +12,16 @@ const StockListCard: React.FC<WorkflowProps> = ({
     categoryName,
     createdDate,
 }) => {
-    const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric',hour: '2-digit', minute: '2-digit' });
 
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
                 <View style={{flexDirection: "column", width: "60%",}}>
                     <Text style={[styles.TextTitle, {width: "100%",}]}>{code}</Text>
-                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{categoryName}</Text>
-                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{RequesterName}</Text>
-                    <Text style={[styles.TextDescription, {}]} numberOfLines={2}>{newFormatDate}</Text>
+                    <Text style={[styles.TextDescription, {}]}>{RequesterName}</Text>
+                    <Text style={[styles.TextDescription2, {}]}>{categoryName}</Text>
+                    <Text style={[styles.TextDescription2, {}]}>{newFormatDate}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
                     <Text style={[styles.TextStatus2, {
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     },
     TextTitle: {
         color: COLORS.primaryBlackHex,
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         marginVertical: 5,
         textAlign: "left",
@@ -66,6 +66,15 @@ const styles = StyleSheet.create({
         textAlign: "left",
         textAlignVertical: "center",
         width: "80%",
+        fontWeight: "bold",
+    },
+    TextDescription2: {
+        color: COLORS.primaryLightGreyHex,
+        fontSize: 12,
+        textAlign: "left",
+        textAlignVertical: "center",
+        width: "80%",
+        fontWeight: "bold",
     },
     TextStatus: {
         marginVertical: 5,
@@ -82,14 +91,15 @@ const styles = StyleSheet.create({
         paddingVertical: 5
     },
     TextStatus2: {
+        flex: 1,
         marginVertical: 5,
-        textAlignVertical: "center",
+        textAlignVertical: "bottom",
         alignSelf: "flex-end", 
         textAlign: "right", 
         width: 'auto', 
         fontWeight: "bold", 
         fontSize: 16, 
-        color: HEADERBACKGROUNDCOLORCODE
+        color: HEADERBACKGROUNDCOLORCODE,
     },
 });
 

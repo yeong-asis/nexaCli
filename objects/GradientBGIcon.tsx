@@ -16,8 +16,8 @@ const GradientBGIcon: React.FC<GradientBGIconProps> = ({name, color, size}) => {
         <LinearGradient
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
-            // colors={[COLORS.primaryDarkGreyHex, COLORS.primaryDarkGreyHex]}
-            colors={[HEADERBACKGROUNDCOLORCODE, HEADERBACKGROUNDCOLORCODE]}
+            colors={[COLORS.primaryVeryLightGreyHex, COLORS.primaryVeryLightGreyHex]}
+            // colors={[HEADERBACKGROUNDCOLORCODE, HEADERBACKGROUNDCOLORCODE]}
             style={styles.LinearGradientBG}
         >
             <Icon name={name} color={color} size={size} />
@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     LinearGradientBG: {
-        height: 36,
-        width: 36,
+        height: 40,
+        width: 40,
         alignItems: 'center',
         justifyContent: 'center',
     },

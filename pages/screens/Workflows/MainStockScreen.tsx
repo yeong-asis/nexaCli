@@ -95,16 +95,19 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                 }
                     
             }else{
+                setProcessData(false);
                 Snackbar.show({
-                    text: 'Connect Server failed, Please try again.',
+                    text: 'Load data failed, Please try again.',
                     duration: Snackbar.LENGTH_LONG,
                 });
-                setProcessData(false);
             }
 
         }catch (error: any) {
             setProcessData(false);
-            console.log("Error: "+error);
+            Snackbar.show({
+                text: 'Connect Server failed, Please try again.',
+                duration: Snackbar.LENGTH_LONG,
+            });
         }
     };
 

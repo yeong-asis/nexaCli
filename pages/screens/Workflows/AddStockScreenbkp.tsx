@@ -4,7 +4,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
-import { BACKGROUNDCOLORCODE, COLORS, FONTFAMILY, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
+import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
 import { IPAddress, SelectionItem } from '../../../objects/objects';
@@ -386,8 +386,9 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 {(selectedType=="General") ? (
                                 <>
                                 <View style={{ flex: 1, marginTop: 10}}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Requester</Text>
+                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                     </View>
                                     <Dropdown
                                         style={AddItemScreenCSS.dropdown}
@@ -407,6 +408,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             setRequester(item.pkkey);
                                             setRequesterName(item.name);
                                         }}
+                                        // performance tweaks:
                                         maxHeight={300}
                                         flatListProps={{
                                             initialNumToRender: 20,
@@ -415,140 +417,151 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                     />
                                 </View>
 
-                                <View style={{ flex: 1, marginTop: 10}}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                    </View>
-                                    <Dropdown
-                                        style={AddItemScreenCSS.dropdown}
-                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                        containerStyle={AddItemScreenCSS.listContainerStyle}
-                                        activeColor={COLORS.primaryVeryLightGreyHex}
-                                        data={categoryOptions}
-                                        search
-                                        searchPlaceholder="Search.."
-                                        labelField="name"
-                                        valueField="pkkey"
-                                        placeholder={categoryName || 'Select Category'}
-                                        value={category}
-                                        onChange={item => {
-                                            setCategory(item.pkkey);
-                                            setCategoryName(item.name);
-                                        }}
-                                        maxHeight={300}
-                                        flatListProps={{
-                                            initialNumToRender: 20,
-                                            windowSize: 10,
-                                        }}
-                                    />
-                                </View>
-
-                                <View style={{ flex: 1, marginTop: 10}}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Movement Type</Text>
-                                    </View>
-                                    {movementTypeOptions.map(option => (
-                                        <TouchableOpacity
-                                            key={option.pkkey}
-                                            style={AddItemScreenCSS.RadioContainer}
-                                            onPress={() => {
-                                                setMovementType(option.pkkey);
-                                                setMovementTypeName(option.name);
-                                            }}
-                                        >
-                                        <View style={AddItemScreenCSS.RadioRow}>
-                                            {movementType === option.pkkey && <View style={{
-                                                height: 10,
-                                                width: 10,
-                                                borderRadius: 5,
-                                                backgroundColor: HEADERBACKGROUNDCOLORCODE
-                                            }} />}
+                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
+                                    <View style={{ flex: 1, marginRight: 10 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                         </View>
-                                            <Text style={AddItemScreenCSS.RadioText}>{option.name}</Text>
-                                        </TouchableOpacity>
-                                    ))}
+                                        <Dropdown
+                                            style={AddItemScreenCSS.dropdown}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={categoryOptions}
+                                            search
+                                            searchPlaceholder="Search.."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={categoryName || 'Select Category'}
+                                            value={category}
+                                            onChange={item => {
+                                                setCategory(item.pkkey);
+                                                setCategoryName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
+                                    </View>
+
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Movement Type</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                        </View>
+                                        <Dropdown
+                                            style={AddItemScreenCSS.dropdown}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={movementTypeOptions}
+                                            search
+                                            searchPlaceholder="Search..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={movementTypeName || 'Select..'}
+                                            value={movementType}
+                                            onChange={item => {
+                                                setMovementType(item.pkkey);
+                                                setMovementTypeName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
+                                    </View>
                                 </View>
 
-                                <View style={{ flex: 1, marginTop: 10}}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Receive From</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
+                                     <View style={{ flex: 1, marginRight: 10 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Receive From</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                        </View>
+                                        <Dropdown
+                                            style={[
+                                                AddItemScreenCSS.dropdown,
+                                            ]}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={receiveFromOptions}
+                                            search
+                                            searchPlaceholder="Search..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={receiveFromName || 'Select..'}
+                                            value={receiveFrom}
+                                            onChange={item => {
+
+                                                // Snackbar.show({
+                                                //     text: "key: "+item.pkkey.toString(),
+                                                //     duration: Snackbar.LENGTH_LONG,
+                                                // });
+                                                console.log(item.pkkey);
+
+                                                setReceiveFrom(item.pkkey);
+                                                setReceiveFromName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
                                     </View>
-                                    <Dropdown
-                                        style={[
-                                            AddItemScreenCSS.dropdown,
-                                        ]}
-                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                        containerStyle={AddItemScreenCSS.listContainerStyle}
-                                        activeColor={COLORS.primaryVeryLightGreyHex}
-                                        data={receiveFromOptions}
-                                        search
-                                        searchPlaceholder="Search..."
-                                        labelField="name"
-                                        valueField="pkkey"
-                                        placeholder={receiveFromName || 'Select..'}
-                                        value={receiveFrom}
-                                        onChange={item => {
 
-                                            // Snackbar.show({
-                                            //     text: "key: "+item.pkkey.toString(),
-                                            //     duration: Snackbar.LENGTH_LONG,
-                                            // });
-                                            console.log(item.pkkey);
-
-                                            setReceiveFrom(item.pkkey);
-                                            setReceiveFromName(item.name);
-                                        }}
-                                        // performance tweaks:
-                                        maxHeight={300}
-                                        flatListProps={{
-                                            initialNumToRender: 20,
-                                            windowSize: 10,
-                                        }}
-                                    />
-                                </View>
-
-                                <View style={{ flex: 1, marginTop: 10}}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
-                                        <Text style={AddItemScreenCSS.TextInputFont}>Deliver To</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Deliver To</Text>
+                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                        </View>
+                                        <Dropdown
+                                            style={[
+                                                AddItemScreenCSS.dropdown,
+                                            ]}
+                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                            containerStyle={AddItemScreenCSS.listContainerStyle}
+                                            activeColor={COLORS.primaryVeryLightGreyHex}
+                                            data={deliverToOptions}
+                                            search
+                                            searchPlaceholder="Search..."
+                                            labelField="name"
+                                            valueField="pkkey"
+                                            placeholder={deliverToName || 'Select..'}
+                                            value={deliverTo}
+                                            onChange={item => {
+                                                setDeliverTo(item.pkkey);
+                                                setDeliverToName(item.name);
+                                            }}
+                                            // performance tweaks:
+                                            maxHeight={300}
+                                            flatListProps={{
+                                                initialNumToRender: 20,
+                                                windowSize: 10,
+                                            }}
+                                        />
                                     </View>
-                                    <Dropdown
-                                        style={[
-                                            AddItemScreenCSS.dropdown,
-                                        ]}
-                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                        containerStyle={AddItemScreenCSS.listContainerStyle}
-                                        activeColor={COLORS.primaryVeryLightGreyHex}
-                                        data={deliverToOptions}
-                                        search
-                                        searchPlaceholder="Search..."
-                                        labelField="name"
-                                        valueField="pkkey"
-                                        placeholder={deliverToName || 'Select..'}
-                                        value={deliverTo}
-                                        onChange={item => {
-                                            setDeliverTo(item.pkkey);
-                                            setDeliverToName(item.name);
-                                        }}
-                                        // performance tweaks:
-                                        maxHeight={300}
-                                        flatListProps={{
-                                            initialNumToRender: 20,
-                                            windowSize: 10,
-                                        }}
-                                    />
                                 </View>
 
                                 <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Purpose</Text>
                                     </View>
                                     <TextInput
@@ -564,7 +577,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 </View>
 
                                 <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Remark</Text>
                                     </View>
                                     <TextInput
@@ -621,7 +634,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 ) : (
                                 <>
                                 {products.map((item, index) => (
-                                    <View key={index} style={{ marginVertical: 5, marginTop: 20, borderBottomWidth: 1, borderColor: '#ccc', paddingBottom: 10 }}>
+                                    <View key={index} style={{ marginTop: 20, borderBottomWidth: 1, borderColor: '#ccc', paddingBottom: 10 }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Product {index + 1}</Text>
                                         <Dropdown
                                             style={[
@@ -708,7 +721,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                 </>
                                 )}
 
-                                <TouchableOpacity style={[AddItemScreenCSS.Button, {width: "50%"}]} onPress={() => { 
+                                <TouchableOpacity style={[AddItemScreenCSS.Button, {width: "40%"}]} onPress={() => { 
                                     submitAddStock(
                                         requester,
                                         category,

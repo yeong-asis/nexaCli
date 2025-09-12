@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, Text, TouchableOpacity, View } from 'react-native';
 import { HeaderCSS } from '../../themes/CSS';
-import { COLORS } from '../../themes/theme';
+import { BLACKUSEFULCOLOR, COLORS, HEADERBACKGROUNDCOLORCODE, SECONDGREENCOLOR } from '../../themes/theme';
 import { useNavigation } from '@react-navigation/native';
 import GradientBGIcon from '../../objects/GradientBGIcon';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from './Navigation';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface HeaderBarProps {
   title?: string;
@@ -23,7 +24,23 @@ const HeaderBar: React.FC<HeaderBarProps> = ({title, checkBackBttn, phoneID, per
     const [userID, setUserID] = useState('');
     
     return (
-        checkBackBttn==true ? (
+        <>
+        <View style={HeaderCSS.FirstTopMainHeaderCSS}>
+            <Image 
+            source={require('../../assets/NexaLogoBWBoard.png')} 
+            style={HeaderCSS.HeaderPictureCSS} />
+            <View>
+                <TouchableOpacity onPress={async () => {}}>
+                    <Icon
+                        name="ellipsis-vertical"
+                        size={28}
+                        color={ COLORS.primaryWhiteHex }
+                        style={HeaderCSS.HeaderIconCSS}
+                    />
+                </TouchableOpacity>
+            </View>
+        </View>
+        {checkBackBttn==true ? (
         <View style={HeaderCSS.BackHeaderContainer}>
             <TouchableOpacity onPress={async () => { 
                 if (navigation.canGoBack()) {
@@ -33,20 +50,21 @@ const HeaderBar: React.FC<HeaderBarProps> = ({title, checkBackBttn, phoneID, per
                 }
              }}>
                 <GradientBGIcon
-                    name="arrow-back-circle-outline"
-                    color={COLORS.primaryWhiteHex}
-                    size={34}
+                    name="arrow-back-circle-sharp"
+                    color={HEADERBACKGROUNDCOLORCODE}
+                    size={40}
                 />
             </TouchableOpacity>
-
-            <Text style={[HeaderCSS.HeaderText, {marginLeft: 15}]}>{title}</Text>
+            <View style={{marginLeft: 15}}>
+                <Text style={HeaderCSS.HeaderText}>{title}</Text>
+            </View>
         </View>
         ) : (
         <View style={HeaderCSS.HeaderContainer}>
-            <Text style={[HeaderCSS.HeaderText, {marginLeft: 15}]}>{title}</Text>
-            <View style={{flexDirection: "row"}}></View>
+            <Text style={HeaderCSS.HeaderText}>{title}</Text>
         </View>
-        )
+        )}
+        </>
     );
 };
 

@@ -108,9 +108,9 @@ const LoginScreen = ({navigation}: any) => {
             )}
 
             <KeyboardAvoidWrapper>
-                <View style={{ flex: 1}}>
+                <View style={{ flex: 1, height: Dimensions.get("screen").height* 0.9, justifyContent: "center"}}>
                     {/* Logo */}
-                    <View style={[LoginManagementCSS.widthAndAdjustment]}>
+                    <View style={[LoginManagementCSS.widthAndAdjustment, {alignItems: "center"}]}>
                         <Image 
                         source={require('../../assets/NexaLogo.png')} 
                         style={{ 

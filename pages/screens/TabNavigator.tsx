@@ -7,6 +7,7 @@ import { COLORS, HEADERBACKGROUNDCOLORCODE } from '../../themes/theme';
 import { TabCSS } from '../../themes/CSS';
 import { DashboardScreen } from './DashboardScreen';
 import { ProfileScreen } from './ProfileScreen';
+import { SettingScreen } from './SettingScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,7 +32,7 @@ const TabNavigator = () => {
                 options={{ tabBarIcon: ({focused, color, size}) => (
                     <Icon
                         name="home"
-                        size={28}
+                        size={32}
                         color={
                             focused ? HEADERBACKGROUNDCOLORCODE : COLORS.secondaryLightGreyHex
                         }
@@ -44,7 +45,20 @@ const TabNavigator = () => {
                 options={{ tabBarIcon: ({focused, color, size}) => (
                     <Icon
                         name="person"
-                        size={28}
+                        size={32}
+                        color={
+                            focused ? HEADERBACKGROUNDCOLORCODE : COLORS.secondaryLightGreyHex
+                        }
+                    />
+                ), }}>
+            </Tab.Screen>
+            <Tab.Screen
+                name="Setting"
+                component={SettingScreen}
+                options={{ tabBarIcon: ({focused, color, size}) => (
+                    <Icon
+                        name="cog-outline"
+                        size={32}
                         color={
                             focused ? HEADERBACKGROUNDCOLORCODE : COLORS.secondaryLightGreyHex
                         }

@@ -15,7 +15,9 @@ import WorkflowLogCard from '../../../objects/Cards/WorkflowLogCard';
 import CommentLogCard from '../../../objects/Cards/CommentLogCard';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+// import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
+import { Swipeable } from 'react-native-gesture-handler';
 
 type ProductItem = {
     id: string;
@@ -86,25 +88,58 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
     const pickFiles = async () => {
         try {
-            const options: ImageLibraryOptions = {
-                mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
-                selectionLimit: 0,  // 0 means unlimited selection
-                includeBase64: false, // Optional: if you need base64 data
-            };
+            // const results = await DocumentPicker.pick({
+            //     type: [DocumentPicker.types.allFiles], // 👈 allow all file types
+            //     allowMultiSelection: true,
+            // });
 
-            launchImageLibrary(options, (response) => {
-                if (response.didCancel) {
-                    console.log('User cancelled picker');
-                } else if (response.errorCode) {
-                    console.error('ImagePicker Error: ', response.errorMessage);
-                } else {
-                    const picked: Asset[] = response.assets ?? [];
-                    setAttachments((prev) => [...prev, ...picked]);
-                }
-            });
+            // const filesWithBase64 = await Promise.all(
+            //     results.map(async (file) => {
+            //         let base64Data = null;
+
+            //         // Only read base64 for non-video files (videos can be huge!)
+            //         if (!file.type?.startsWith('video/')) {
+            //             base64Data = await RNFS.readFile(file.uri, 'base64');
+            //         }
+
+            //         return {
+            //             uri: file.uri,
+            //             name: file.name,
+            //             type: file.type ?? 'unknown',
+            //             size: file.size,
+            //             base64: base64Data, // 👈 available for images, pdf, docs, etc.
+            //         };
+            //     })
+            // );
+
+            // setAttachments((prev) => [...prev, ...filesWithBase64]);
         } catch (err) {
-            console.error(err);
+            // if (DocumentPicker.isCancel(err)) {
+            //     console.log('User cancelled');
+            // } else {
+            //     console.error(err);
+            // }
         }
+        // try {
+        //     const options: ImageLibraryOptions = {
+        //         mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
+        //         selectionLimit: 0,  // 0 means unlimited selection
+        //         includeBase64: false, // Optional: if you need base64 data
+        //     };
+
+        //     launchImageLibrary(options, (response) => {
+        //         if (response.didCancel) {
+        //             console.log('User cancelled picker');
+        //         } else if (response.errorCode) {
+        //             console.error('ImagePicker Error: ', response.errorMessage);
+        //         } else {
+        //             const picked: Asset[] = response.assets ?? [];
+        //             setAttachments((prev) => [...prev, ...picked]);
+        //         }
+        //     });
+        // } catch (err) {
+        //     console.error(err);
+        // }
     };
 
     const fetchedSelectionAPI = async() => {
@@ -290,37 +325,40 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
             const responseData=responseDetail.data;
             if(responseData.Acknowledge==0) {
-                const formattedMessages = responseData.Activities.map((item: any) => {
-                    const newLogOnDate = new Date(item.LogOn).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    return {
-                        pkkey: item.Id,
-                        SMQID: item.SMQID,
-                        personName: item.CreatedBy,
-                        comment: item.LogDetail,
-                        process: item.Process,
-                        logOn: newLogOnDate,
-                        status: item.Status,
-                        parentCommentID: item.ParentCommentID,
-                    };
-                });
-                setWorkflowLogs(formattedMessages);
+                if(responseData.Activities && responseData.Activities.length>0){
+                    const formattedMessages = responseData.Activities.map((item: any) => {
+                        const newLogOnDate = new Date(item.LogOn).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        return {
+                            pkkey: item.Id,
+                            SMQID: item.SMQID,
+                            personName: item.CreatedBy,
+                            comment: item.LogDetail,
+                            process: item.Process,
+                            logOn: newLogOnDate,
+                            status: item.Status,
+                            parentCommentID: item.ParentCommentID,
+                        };
+                    });
+                    setWorkflowLogs(formattedMessages);
+                }
 
-                const commentMessages = responseData.Comments.map((item: any) => {
-                    const newCreatedOn = new Date(item.CreatedOn).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    return {
-                        pkkey: item.ID,
-                        SMQID: item.SMQID,
-                        process: "",
-                        personName: item.CreatedBy,
-                        parentCommentID: item.ParentCommentID,
-                        comment: item.Comment,
-                        logOn: newCreatedOn,
-                        status: item.status,
-                    };
-                });
-                const arrangedComments: any = arrangeComments(commentMessages);
-                console.log(arrangedComments)
-                setCommentLogs(arrangedComments);
+                if(responseData.Comments && responseData.Comments.length>0){
+                    const commentMessages = responseData.Comments.map((item: any) => {
+                        const newCreatedOn = new Date(item.CreatedOn).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        return {
+                            pkkey: item.ID,
+                            SMQID: item.SMQID,
+                            process: "",
+                            personName: item.CreatedBy,
+                            parentCommentID: item.ParentCommentID,
+                            comment: item.Comment,
+                            logOn: newCreatedOn,
+                            status: item.status,
+                        };
+                    });
+                    const arrangedComments: any = arrangeComments(commentMessages);
+                    setCommentLogs(arrangedComments);
+                }
 
             }else{
                 Snackbar.show({
@@ -375,33 +413,6 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     ) => {
         setProcessData(true);
         let emtpy = false;
-
-        if (category === '') {
-            Snackbar.show({
-                text: 'Category can not be empty',
-                duration: Snackbar.LENGTH_LONG,
-            });
-            emtpy = true;
-            setProcessData(false);
-        }
-
-        if (receiveFrom === '') {
-            Snackbar.show({
-                text: 'Receive From can not be empty',
-                duration: Snackbar.LENGTH_LONG,
-            });
-            emtpy = true;
-            setProcessData(false);
-        }
-
-        if (deliverTo === '') {
-            Snackbar.show({
-                text: 'Deliver to can not be empty',
-                duration: Snackbar.LENGTH_LONG,
-            });
-            emtpy = true;
-            setProcessData(false);
-        }
 
         if (products.length<=1 && products[0].id=="") {
             Snackbar.show({
@@ -642,21 +653,19 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             style={[
                                             ButtonCSS.SegmentedButton,
                                             {
-                                                // backgroundColor: isSelected ? HEADERBACKGROUNDCOLORCODE : "transparent",
+                                                backgroundColor: isSelected ? HEADERBACKGROUNDCOLORCODE : "transparent",
                                                 borderWidth: isSelected ? 2 : 0,
-                                                backgroundColor: COLORS.primaryWhiteHex,
                                                 borderColor: isSelected ? HEADERBACKGROUNDCOLORCODE : "transparent",
                                                 borderBottomWidth: isSelected ? 2 : 2,
                                                 borderBottomColor: COLORS.primaryGreyHex,
-                                                borderRadius: isSelected ? 6 : 0,
-                                                marginHorizontal: 5,
+                                                borderTopLeftRadius: isSelected ? 8 : 0,
+                                                borderTopRightRadius: isSelected ? 8 : 0,
                                             },
                                             ]}
                                         >
                                             <Text
                                             style={{
-                                                color: isSelected ? HEADERBACKGROUNDCOLORCODE : COLORS.primaryGreyHex,
-                                                // color: isSelected ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex,
+                                                color: isSelected ? COLORS.primaryWhiteHex : COLORS.primaryGreyHex,
                                                 fontWeight: isSelected ? "bold" : "normal",
                                                 textAlign: "center",
                                             }}
@@ -671,9 +680,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 {(selectedType=="General") ? (
                                 <>
                                 <View style={{ flex: 1, marginTop: 10}}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Requester</Text>
-                                        <Text style={AddItemScreenCSS.asterisk}>*</Text>
                                     </View>
                                     <Dropdown
                                         style={AddItemScreenCSS.dropdown}
@@ -702,151 +710,129 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     />
                                 </View>
 
-                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
-                                    <View style={{ flex: 1, marginRight: 10 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <Dropdown
-                                            style={AddItemScreenCSS.dropdown}
-                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                            containerStyle={AddItemScreenCSS.listContainerStyle}
-                                            activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={categoryOptions}
-                                            search
-                                            searchPlaceholder="Search Category..."
-                                            labelField="name"
-                                            valueField="pkkey"
-                                            placeholder={categoryName || 'Select Category'}
-                                            value={category}
-                                            onChange={item => {
-                                                setCategory(item.pkkey);
-                                                setCategoryName(item.name);
-                                            }}
-                                            // performance tweaks:
-                                            maxHeight={300}
-                                            flatListProps={{
-                                                initialNumToRender: 20,
-                                                windowSize: 10,
-                                            }}
-                                        />
+                                <View style={{ flex: 1, marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
                                     </View>
-
-                                    <View style={{ flex: 1 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Movement Type</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <Dropdown
-                                            style={AddItemScreenCSS.dropdown}
-                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                            containerStyle={AddItemScreenCSS.listContainerStyle}
-                                            activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={movementTypeOptions}
-                                            search
-                                            searchPlaceholder="Search..."
-                                            labelField="name"
-                                            valueField="pkkey"
-                                            placeholder={movementTypeName || 'Select'}
-                                            value={movementType}
-                                            onChange={item => {
-                                                setMovementType(item.pkkey);
-                                                setMovementTypeName(item.name);
-                                            }}
-                                            // performance tweaks:
-                                            maxHeight={300}
-                                            flatListProps={{
-                                                initialNumToRender: 20,
-                                                windowSize: 10,
-                                            }}
-                                        />
-                                    </View>
+                                    <Dropdown
+                                        style={AddItemScreenCSS.dropdown}
+                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                        containerStyle={AddItemScreenCSS.listContainerStyle}
+                                        activeColor={COLORS.primaryVeryLightGreyHex}
+                                        data={categoryOptions}
+                                        search
+                                        searchPlaceholder="Search Category..."
+                                        labelField="name"
+                                        valueField="pkkey"
+                                        placeholder={categoryName || 'Select Category'}
+                                        value={category}
+                                        onChange={item => {
+                                            setCategory(item.pkkey);
+                                            setCategoryName(item.name);
+                                        }}
+                                        // performance tweaks:
+                                        maxHeight={300}
+                                        flatListProps={{
+                                            initialNumToRender: 20,
+                                            windowSize: 10,
+                                        }}
+                                    />
                                 </View>
 
-                                <View style={{ flexDirection: 'row', marginTop: 10, justifyContent: 'space-between' }}>
-                                     <View style={{ flex: 1, marginRight: 10 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Receive From</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
-                                        </View>
-                                        <Dropdown
-                                            style={[
-                                                AddItemScreenCSS.dropdown,
-                                            ]}
-                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                            containerStyle={AddItemScreenCSS.listContainerStyle}
-                                            activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={receiveFromOptions}
-                                            search
-                                            searchPlaceholder="Search..."
-                                            labelField="name"
-                                            valueField="pkkey"
-                                            placeholder={receiveFromName || 'Select...'}
-                                            value={receiveFrom}
-                                            onChange={item => {
-
-                                                // Snackbar.show({
-                                                //     text: "key: "+item.pkkey.toString(),
-                                                //     duration: Snackbar.LENGTH_LONG,
-                                                // });
-                                                console.log(item.pkkey);
-
-                                                setReceiveFrom(item.pkkey);
-                                                setReceiveFromName(item.name);
-                                            }}
-                                            // performance tweaks:
-                                            maxHeight={300}
-                                            flatListProps={{
-                                                initialNumToRender: 20,
-                                                windowSize: 10,
-                                            }}
-                                        />
+                                <View style={{ flex: 1, marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Movement Type</Text>
                                     </View>
-
-                                    <View style={{ flex: 1 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>Deliver To</Text>
-                                            <Text style={AddItemScreenCSS.asterisk}>*</Text>
+                                    {movementTypeOptions.map(option => (
+                                        <TouchableOpacity
+                                            key={option.pkkey}
+                                            style={AddItemScreenCSS.RadioContainer}
+                                            onPress={() => {
+                                                setMovementType(option.pkkey);
+                                                setMovementTypeName(option.name);
+                                            }}
+                                        >
+                                        <View style={AddItemScreenCSS.RadioRow}>
+                                            {String(movementType) === option.pkkey && <View style={{
+                                                height: 10,
+                                                width: 10,
+                                                borderRadius: 5,
+                                                backgroundColor: HEADERBACKGROUNDCOLORCODE
+                                            }} />}
                                         </View>
-                                        <Dropdown
-                                            style={[
-                                                AddItemScreenCSS.dropdown,
-                                            ]}
-                                            placeholderStyle={AddItemScreenCSS.placeholderStyle}
-                                            selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
-                                            inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
-                                            containerStyle={AddItemScreenCSS.listContainerStyle}
-                                            activeColor={COLORS.primaryVeryLightGreyHex}
-                                            data={deliverToOptions}
-                                            search
-                                            searchPlaceholder="Search..."
-                                            labelField="name"
-                                            valueField="pkkey"
-                                            placeholder={deliverToName || 'Select....'}
-                                            value={deliverTo}
-                                            onChange={item => {
-                                                setDeliverTo(item.pkkey);
-                                                setDeliverToName(item.name);
-                                            }}
-                                            // performance tweaks:
-                                            maxHeight={300}
-                                            flatListProps={{
-                                                initialNumToRender: 20,
-                                                windowSize: 10,
-                                            }}
-                                        />
+                                            <Text style={AddItemScreenCSS.RadioText}>{option.name}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
+                                <View style={{ flex: 1, marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Receive From</Text>
                                     </View>
+                                    <Dropdown
+                                        style={[
+                                            AddItemScreenCSS.dropdown,
+                                        ]}
+                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                        containerStyle={AddItemScreenCSS.listContainerStyle}
+                                        activeColor={COLORS.primaryVeryLightGreyHex}
+                                        data={receiveFromOptions}
+                                        search
+                                        searchPlaceholder="Search..."
+                                        labelField="name"
+                                        valueField="pkkey"
+                                        placeholder={receiveFromName || 'Select...'}
+                                        value={receiveFrom}
+                                        onChange={item => {
+                                            setReceiveFrom(item.pkkey);
+                                            setReceiveFromName(item.name);
+                                        }}
+                                        maxHeight={300}
+                                        flatListProps={{
+                                            initialNumToRender: 20,
+                                            windowSize: 10,
+                                        }}
+                                    />
+                                </View>
+
+                                <View style={{ flex: 1, marginTop: 10}}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                        <Text style={AddItemScreenCSS.TextInputFont}>Deliver To</Text>
+                                    </View>
+                                    <Dropdown
+                                        style={[
+                                            AddItemScreenCSS.dropdown,
+                                        ]}
+                                        placeholderStyle={AddItemScreenCSS.placeholderStyle}
+                                        selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
+                                        inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
+                                        containerStyle={AddItemScreenCSS.listContainerStyle}
+                                        activeColor={COLORS.primaryVeryLightGreyHex}
+                                        data={deliverToOptions}
+                                        search
+                                        searchPlaceholder="Search..."
+                                        labelField="name"
+                                        valueField="pkkey"
+                                        placeholder={deliverToName || 'Select....'}
+                                        value={deliverTo}
+                                        onChange={item => {
+                                            setDeliverTo(item.pkkey);
+                                            setDeliverToName(item.name);
+                                        }}
+                                        maxHeight={300}
+                                        flatListProps={{
+                                            initialNumToRender: 20,
+                                            windowSize: 10,
+                                        }}
+                                    />
                                 </View>
 
                                 <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Purpose</Text>
                                     </View>
                                     <TextInput
@@ -862,7 +848,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 </View>
 
                                 <View style={{ marginTop: 10 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Remark</Text>
                                     </View>
                                     <TextInput
@@ -879,20 +865,20 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                 {/* ── Attach Files Section ──────────────────────────────────────── */}
                                 <View style={{ marginTop: 16 }}>
-                                    {/* (a) Button to open document picker */}
-                                    <TouchableOpacity
-                                        onPress={()=>pickFiles()}
-                                        // onPress={pickFiles}
-                                        style={{
-                                        paddingVertical: 12,
-                                        paddingHorizontal: 16,
-                                        backgroundColor: COLORS.primaryLightGreyHex,
-                                        borderRadius: 6,
-                                        alignSelf: 'flex-start',
-                                        }}
-                                    >
-                                        <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
-                                    </TouchableOpacity>
+                                    {(requester==currentUserID) && (
+                                        <TouchableOpacity
+                                            onPress={()=>pickFiles()}
+                                            style={{
+                                            paddingVertical: 12,
+                                            paddingHorizontal: 16,
+                                            backgroundColor: COLORS.primaryLightGreyHex,
+                                            borderRadius: 6,
+                                            alignSelf: 'flex-start',
+                                            }}
+                                        >
+                                            <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
+                                        </TouchableOpacity>
+                                    )}
 
                                     {attachments.map((file, idx) => (
                                     <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
@@ -928,12 +914,12 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                 { (isValidators==true) ? (
                                     <>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
                                             setShowSummary(true)
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
                                             Snackbar.show({
                                                 text: 'Reject SMQ',
                                                 duration: Snackbar.LENGTH_LONG,
@@ -1014,7 +1000,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
 
                                         {/* Optional: Remove product button */}
-                                        {products.length > 1 && (
+                                        {(requester==currentUserID) && (products.length > 1) && (
                                         <TouchableOpacity
                                             style={{ marginTop: 10 }}
                                             onPress={() => {
@@ -1028,6 +1014,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     </View>
                                 ))}
                                 
+                                {(requester==currentUserID) && (
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
@@ -1036,7 +1023,9 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     >
                                     <Text style={AddItemScreenCSS.AddItemText}>Add Product</Text>
                                 </TouchableOpacity>
+                                )}
 
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
                                 { (requester==currentUserID) ? ( 
                                     <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
                                         
@@ -1048,17 +1037,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 )}
 
                                 { (isValidators==true) ? (
-                                    <View style={{flexDirection: "row", justifyContent: 'space-around'}}>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE, width:"45%",}]} onPress={() => { 
+                                    <>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
                                             setShowSummary(true)
-                                            // Snackbar.show({
-                                            //     text: 'Approve SMQ',
-                                            //     duration: Snackbar.LENGTH_LONG,
-                                            // });
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width:"45%",}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
                                             Snackbar.show({
                                                 text: 'Reject SMQ',
                                                 duration: Snackbar.LENGTH_LONG,
@@ -1066,10 +1051,11 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
                                         </TouchableOpacity>
-                                    </View>
+                                    </>
                                 ) : (
                                     <></>
                                 )}
+                                </View>
                                 
                                 </>
                                 ) : (
@@ -1078,7 +1064,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     {workflowLogs.length>0 ? (
                                     <>
                                     <View style={{ marginTop: 10,}}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
                                         </View>
                                         <FlatList 
@@ -1096,7 +1082,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     {commentLogs.length>0 ? (
                                     <>
                                     <View style={{ marginTop: 10}}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}> View Comment</Text>
                                         </View>
                                         <FlatList 
@@ -1112,7 +1098,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     ) : (<></>)}
 
                                     <View style={{ marginTop: 30 }}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>Comment</Text>
                                         </View>
                                         {replyTo && (

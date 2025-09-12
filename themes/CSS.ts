@@ -1,11 +1,10 @@
 import { Dimensions, Platform, StyleSheet } from "react-native";
-import { COLORS, FONTFAMILY, HEADERBACKGROUNDCOLORCODE, MAINCOLOR } from "./theme";
+import { BLACKUSEFULCOLOR, COLORS, FONTFAMILY, HEADERBACKGROUNDCOLORCODE, MAINCOLOR, SECONDGREENCOLOR } from "./theme";
 
 export const defaultCSS = StyleSheet.create({
     ScreenContainer: {
         flex: 1,
         backgroundColor: COLORS.secondaryVeryLightGreyHex,
-        // marginTop: Platform.OS === 'android' ? -40 : 0,
     },
     ScrollViewFlex: {
         flexGrow: 1,
@@ -59,14 +58,14 @@ export const defaultCSS = StyleSheet.create({
     },
     MainTitle: {
         fontSize: 24,
-        fontFamily: FONTFAMILY.poppins_semibold,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryLightGreyHex,
         paddingLeft: 10,
         fontWeight: "bold",
     },
     ScreenTitle: {
         fontSize: 20,
-        fontFamily: FONTFAMILY.poppins_semibold,
+        fontFamily: FONTFAMILY.poppins_medium,
         // color: COLORS.primaryGreyHex,
         color: COLORS.primaryLightGreyHex,
         fontWeight: "bold",
@@ -85,7 +84,7 @@ export const defaultCSS = StyleSheet.create({
     },
     TextLabel: {
         fontSize: 14,
-        fontFamily: FONTFAMILY.poppins_semibold,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryWhiteHex,
         fontWeight: "bold",
     },
@@ -106,6 +105,7 @@ export const defaultCSS = StyleSheet.create({
         paddingLeft: 5, 
         fontSize: 16, 
         fontWeight: "bold",
+        fontFamily: FONTFAMILY.poppins_medium,
     },
     TextInput: {
         alignSelf:"center",
@@ -113,21 +113,29 @@ export const defaultCSS = StyleSheet.create({
     },
     H1: {
         fontSize: 20,
-        fontFamily: FONTFAMILY.poppins_semibold,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryDarkGreyHex,
         fontWeight: "bold",
     },
     Text: {
         fontSize: 16,
-        fontFamily: FONTFAMILY.poppins_semibold,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryLightGreyHex,
     },
     TextBold: {
-        fontSize: 18,
-        fontFamily: FONTFAMILY.poppins_semibold,
+        fontSize: 24,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryDarkGreyHex,
         fontWeight: "bold",
-        alignSelf: "center"
+        alignSelf: "center",
+    },
+    TextDescript: {
+        fontSize: 18,
+        fontFamily: FONTFAMILY.poppins_medium,
+        color: COLORS.primaryDarkGreyHex,
+        fontWeight: "bold",
+        alignSelf: "center",
+        marginTop: 5,
     },
     DetailViewContainer: {
         width: "80%", 
@@ -148,7 +156,8 @@ export const defaultCSS = StyleSheet.create({
     ListTextCSS: {
         color: COLORS.primaryGreyHex,
         fontSize: 18, 
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        fontFamily: FONTFAMILY.poppins_medium,
     },
     starTextInput: {
         color: 'red', 
@@ -199,6 +208,7 @@ export const LoginManagementCSS = StyleSheet.create({
         color: COLORS.primaryDarkGreyHex,  
         fontSize: 28, 
         fontWeight: "bold",
+        fontFamily: FONTFAMILY.poppins_medium,
         textAlign: "center"
     },
     TextInputDesign: {
@@ -212,6 +222,7 @@ export const LoginManagementCSS = StyleSheet.create({
         color: COLORS.primaryDarkGreyHex,
         fontSize: 14, 
         fontWeight: "bold",
+        fontFamily: FONTFAMILY.poppins_medium,
         textAlign: "center"
     },
     Button: {
@@ -226,6 +237,7 @@ export const LoginManagementCSS = StyleSheet.create({
     ButtonText: {
         fontWeight: "bold",
         fontSize: 18,
+        fontFamily: FONTFAMILY.poppins_medium,
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
     },
@@ -249,27 +261,48 @@ export const LoginManagementCSS = StyleSheet.create({
 
 export const HeaderCSS = StyleSheet.create({
     SetHeaderCSS: {
-        marginTop: Platform.OS === 'android' ? -40 : 0,
+        // marginTop: Platform.OS === 'android' ? -40 : 0,
+    },
+    FirstTopMainHeaderCSS: {
+        flexDirection: "row", 
+        width: Dimensions.get("screen").width, 
+        justifyContent: "space-between", 
+        backgroundColor: BLACKUSEFULCOLOR,
+    },
+    HeaderPictureCSS: {
+        width: 100, 
+        height: 30,
+        resizeMode: 'contain', 
+        alignSelf: "center",
+        marginTop: 50,
+        marginLeft: 20,
+        marginBottom: 15,
+    },
+    HeaderIconCSS: {
+        marginTop: 50,
+        marginRight: 20,
+        marginBottom: 15,
     },
     HeaderContainer: {
-        backgroundColor: HEADERBACKGROUNDCOLORCODE,
-        padding: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        width: Dimensions.get("screen").width,
+        backgroundColor: COLORS.primaryVeryLightGreyHex,
+        padding: 10,
+        paddingTop: 15,
     },
     BackHeaderContainer: {
-        backgroundColor: HEADERBACKGROUNDCOLORCODE,
+        width: Dimensions.get("screen").width,
+        backgroundColor: COLORS.primaryVeryLightGreyHex,
         padding: 12,
-        paddingTop: 50,
+        paddingTop: 10,
         flexDirection: 'row',
+        alignSelf: "center",
     },
     HeaderText: {
-        fontFamily: FONTFAMILY.poppins_semibold,
-        fontSize: 24,
-        color: COLORS.primaryWhiteHex,
+        fontFamily: FONTFAMILY.poppins_medium,
+        fontSize: 30,
+        color: HEADERBACKGROUNDCOLORCODE,
         fontWeight: "bold",
-        marginHorizontal: 15,
+        alignSelf: "center"
     },
     iconWithBadge: {
         position: 'relative',
@@ -296,6 +329,7 @@ export const FooterCSS = StyleSheet.create({
     FooterContainer: {
         padding: 10, 
         alignItems: 'flex-end',
+        marginBottom: 40,
     },
     FooterText: {
         color: COLORS.secondaryLightGreyHex,
@@ -312,12 +346,14 @@ export const AddItemScreenCSS = StyleSheet.create({
         paddingLeft: 5, 
         fontSize: 14, 
         fontWeight: "bold",
+        fontFamily: FONTFAMILY.poppins_medium,
     },
     TextInputFont: {
         color: COLORS.primaryDarkGreyHex,  
         paddingLeft: 5, 
         fontSize: 14, 
         fontWeight: "bold",
+        fontFamily: FONTFAMILY.poppins_medium,
     },
     labelRow: {
         flexDirection: "row",
@@ -327,11 +363,13 @@ export const AddItemScreenCSS = StyleSheet.create({
         color: "red",
         marginLeft: 4,
         fontSize: 16,
+        fontFamily: FONTFAMILY.poppins_medium,
     },
     errorText: {
         color: "red",
         marginTop: 4,
         fontSize: 12,
+        fontFamily: FONTFAMILY.poppins_medium,
     },
     Button: {
         alignSelf:"center",
@@ -344,6 +382,7 @@ export const AddItemScreenCSS = StyleSheet.create({
     ButtonText: {
         fontWeight: "bold",
         fontSize: 18,
+        fontFamily: FONTFAMILY.poppins_medium,
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
     },
@@ -366,10 +405,12 @@ export const AddItemScreenCSS = StyleSheet.create({
     AddItemText: {
         fontWeight: "bold",
         fontSize: 14,
+        fontFamily: FONTFAMILY.poppins_medium,
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
     },
     NormalTextInput: {
+        height: 50,
         backgroundColor: COLORS.primaryWhiteHex,
     },
     TextArea: {
@@ -386,6 +427,7 @@ export const AddItemScreenCSS = StyleSheet.create({
     },
     placeholderStyle: {
         fontSize: 14,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryLightGreyHex,
     },
     listContainerStyle: {
@@ -393,12 +435,14 @@ export const AddItemScreenCSS = StyleSheet.create({
     },
     selectedTextStyle: {
         fontSize: 14,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryDarkGreyHex,
         
     },
     inputSearchStyle: {
         height: 40,
         fontSize: 14,
+        fontFamily: FONTFAMILY.poppins_medium,
         color: COLORS.primaryDarkGreyHex,
     },
     ReplyCommentCSS: {
@@ -409,7 +453,28 @@ export const AddItemScreenCSS = StyleSheet.create({
         borderLeftColor: '#4CAF50', 
         marginBottom: 5,
         borderRadius: 5 
-    }
+    },
+    RadioContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+    },
+    RadioRow: {
+        height: 14,
+        width: 14,
+        borderRadius: 7,
+        borderWidth: 2,
+        borderColor: HEADERBACKGROUNDCOLORCODE,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+        marginVertical: 5,
+    },
+    RadioText: {
+        fontWeight: "bold",
+        fontSize: 12,
+        fontFamily: FONTFAMILY.poppins_medium,
+    },
 });
 
 export const SignatureCSS = `   
@@ -431,6 +496,7 @@ export const SignatureCSS = `
         color: white;
         border-radius: 6px;
         font-size: 16px;
+        fontFamily: FONTFAMILY.poppins_medium,
         border: none;
     }
     .m-signature-pad--footer .button.clear {
@@ -455,6 +521,7 @@ export const ButtonCSS = StyleSheet.create({
     ButtonTextCSS: {
         fontWeight: "bold",
         fontSize: 20,
+        fontFamily: FONTFAMILY.poppins_medium,
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
     },
@@ -470,6 +537,7 @@ export const ButtonCSS = StyleSheet.create({
     MainButtonTextCSS: {
         fontWeight: "bold",
         fontSize: 24,
+        fontFamily: FONTFAMILY.poppins_medium,
         alignSelf: "center",
         color: COLORS.primaryWhiteHex,
     },
@@ -526,8 +594,8 @@ export const ButtonCSS = StyleSheet.create({
     },
     plusButton: {
         position: 'absolute',
-        bottom: 24,
-        right: 24,
+        bottom: 60,
+        right: 30,
         width: 56,
         height: 56,
         borderRadius: 28,
@@ -553,16 +621,16 @@ export const IconListPicture = StyleSheet.create({
     },
     gridCSS: {
         flex: 1,
-        minWidth: 120,
-        maxWidth: 120,
-        height: 120,
+        minWidth: 150,
+        maxWidth: 150,
+        height: 150,
         justifyContent: "center",
         alignItems: "center",
         margin: 15,
         backgroundColor: COLORS.secondaryVeryLightGreyHex,
         borderWidth: 1,
         borderColor: COLORS.secondaryLightGreyHex,
-        borderRadius: 20,
+        borderRadius: 8,
     },
     gridTitle: {
         textAlign: "center", 
@@ -593,6 +661,7 @@ export const ModalCSS = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+        fontFamily: FONTFAMILY.poppins_medium,
         marginBottom: 10,
         color: COLORS.primaryBlackHex,
     },
@@ -613,6 +682,7 @@ export const datepickerCSS = StyleSheet.create({
         color: COLORS.primaryDarkGreyHex,
         textAlign: "center",
         fontSize: 14,
+        fontFamily: FONTFAMILY.poppins_medium,
         height: 60,
         width: Dimensions.get("screen").width/100*70,
         backgroundColor: "white"
@@ -625,17 +695,20 @@ export const datepickerCSS = StyleSheet.create({
         height: 60,
         width: Dimensions.get("screen").width/100*70,
         fontSize: 10,
+        fontFamily: FONTFAMILY.poppins_medium,
     },
 });
 
 export const TabCSS = StyleSheet.create({
     tabBarStyle: {
-        height: Platform.OS === 'android' ? 45 : 80,
+        height: 80,
         position: 'absolute',
-        backgroundColor: COLORS.primaryWhiteHex,
+        backgroundColor: SECONDGREENCOLOR,
+        // backgroundColor: COLORS.primaryWhiteHex,
         borderTopWidth: 0,
         elevation: 0,
         borderTopColor: 'transparent',
+        paddingTop: 10,
     },
     BlurViewStyles: {
         // position: 'absolute',
@@ -660,6 +733,7 @@ export const ProfileCSS = StyleSheet.create({
     ButtonTextCSS: {
         fontWeight: "bold",
         fontSize: 18,
+        fontFamily: FONTFAMILY.poppins_medium,
         alignSelf: "center",
         // color: COLORS.primaryWhiteHex,
     },

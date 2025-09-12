@@ -6,6 +6,7 @@ import { defaultCSS, IconListPicture } from '../../themes/CSS';
 import { COLORS } from '../../themes/theme';
 import { GridItem } from '../functions/GridItem';
 import { UserPageList } from '../functions/UserPageList';
+import HeaderBar from '../functions/HeaderBar';
 
 export const DashboardScreen = ({navigation}: any) => {
     const tabBarHeight = useBottomTabBarHeight();
@@ -38,8 +39,9 @@ export const DashboardScreen = ({navigation}: any) => {
     }
 
     return (
-        <SafeAreaView style={[defaultCSS.ScreenContainer, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
+        <View style={defaultCSS.ScreenContainer}>
             <StatusBar backgroundColor={COLORS.secondaryLightGreyHex} />
+            <HeaderBar title={`${"Menu"}`} checkBackBttn={false} />
             {processData ? (
                 <View style={{ flex: 1, marginVertical: Dimensions.get('screen').height / 100 * 10 }}>
                     <ActivityIndicator size={40} color="#000000" />
@@ -47,41 +49,11 @@ export const DashboardScreen = ({navigation}: any) => {
             ): (
                 <View style={{marginBottom: tabBarHeight}}>
                     <View style={{width: Dimensions.get("screen").width, height: Dimensions.get("screen").height}}>
-                        {/* Logo & Title Container */}
-                        <View style={[{flex: 0.2, alignItems: "center"}]}>
-                            <Image 
-                            source={require('../../assets/NexaBoard.png')} 
-                            style={{ 
-                                width: Dimensions.get("screen").width*0.7, 
-                                height: 100,
-                                resizeMode: 'contain', 
-                                alignSelf: "center",
-                                marginTop: 30,
-                            }} />
-                            {/* <View style={[defaultCSS.TitleContainer]}>
-                                <Text style={[defaultCSS.ScreenTitle]}>
-                                    Welcome To ASIS Technologies
-                                </Text>
-                            </View> */}
-                        </View>
 
                         {/* Menu Flatlist Container */}
-                        <View style={[defaultCSS.DashboardContainer, {flex: 0.8,}]}>
-                            <View style={{flexDirection: "row", flex: 0.12, width: "70%", justifyContent: "space-between", marginTop: 20}}>
-                                <View style={{flexDirection: "column", width: "15%"}}>
-                                    <Text style={defaultCSS.TextLabel}>User:</Text>
-                                    {/* <Text style={defaultCSS.TextLabel}>Test:</Text> */}
-                                    <Text style={defaultCSS.TextLabel}>Email</Text>
-                                </View>
-                                <View style={{flexDirection: "column", width: "75%",}}>
-                                    {/* <Text style={defaultCSS.TextLabel}>Title:</Text>
-                                    <Text style={defaultCSS.TextLabel}>{userPosition}</Text> */}
-                                    <Text style={defaultCSS.TextLabel}>{FullName}</Text>
-                                    {/* <Text style={defaultCSS.TextLabel}>{UserID}</Text> */}
-                                    <Text style={defaultCSS.TextLabel}>{Email}</Text>
-                                </View>
-                            </View>
-                            <View style={[defaultCSS.DashboardSubContainer, {flex: 0.88, width: "100%", backgroundColor: COLORS.primaryWhiteHex,}]}>
+                        <View style={[defaultCSS.DashboardContainer, {flex: 1,}]}>
+
+                            <View style={{flex: 1, width: "100%", backgroundColor: COLORS.primaryVeryLightGreyHex,}}>
                                 <ScrollView
                                 showsVerticalScrollIndicator={false}
                                 contentContainerStyle={defaultCSS.ScrollViewFlex}>
@@ -106,6 +78,6 @@ export const DashboardScreen = ({navigation}: any) => {
                     </View>
                 </View>
             )}
-        </SafeAreaView>
+        </View>
     );
 };

@@ -91,7 +91,9 @@ export const HEADERBACKGROUNDCOLORCODE = "#0B3D2E";
 // export const HEADERBACKGROUNDCOLORCODE = "#3F51B5";
 // export const HEADERBACKGROUNDCOLORCODE = "#007ed9";
 
+export const SECONDGREENCOLOR = "#CFDDBB";
 export const BLUEUSEFULCOLOR = "#3F51B5";
+export const BLACKUSEFULCOLOR = "#2C2C2C";
 
 export const MAINCOLOR = COLORS.primaryBlackHex;
 
