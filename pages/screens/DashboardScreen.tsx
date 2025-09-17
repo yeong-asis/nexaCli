@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Platform, SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, PermissionsAndroid, Platform, SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { defaultCSS, IconListPicture } from '../../themes/CSS';
 import { COLORS } from '../../themes/theme';
 import { GridItem } from '../functions/GridItem';
@@ -22,6 +22,8 @@ export const DashboardScreen = ({navigation}: any) => {
             await CheckUserPosition();
         })();
     }, []);
+
+    
 
     const CheckUserPosition = async () => {
         setProcessData(true);

@@ -1,61 +1,58 @@
 import { useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { defaultCSS } from '../../themes/CSS';
 import { BACKGROUNDCOLORCODE } from '../../themes/theme';
 import HeaderBar from '../functions/HeaderBar';
 import LoadingAnimation from '../functions/LoadingAnimation';
 
-type FileType = 'png' | 'jpg' | 'pdf' | 'unknown';
+type FileType = 'png' | 'jpg' | 'jpeg' | 'pdf' | 'unknown';
 
 const ViewAttachmentScreen = ({ navigation }: { navigation: any }) => {
     const route = useRoute();
-    const { fileName, attachmentLink } = route.params as any;
+    const { doc } = route.params as any;
 
     const [fileType, setFileType] = useState<FileType>('unknown');
-    const [b64, setB64]           = useState<string>(''); 
-    const [source, setSource] = useState<any|{ uri: string }|null>(null);
+    const [source, setSource] = useState<any | null>(null);
     const [processData, setProcessData] = useState(false);
 
     useEffect(() => {
-        // const showPreview = async () => {
-        //     // 1) detect type
-        //     const type = detectFileType(attachmentLink);
-        //     setFileType(type);
+        // console.log(doc)
+        const showPreview = async () => {
+            if (!doc) return;
+            setProcessData(true);
 
-        //     // 2) normalize to Base64
-        //     const _b64  = hexToBase64(attachmentLink);
-        //     setB64(_b64);
+            const ext = doc.FileName?.split('.').pop()?.toLowerCase();
+            if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
+                setFileType('jpg'); // treat png/jpg same
+                setSource({ uri: `data:image/${ext};base64,${doc.FileBase64}` });
+            } else if (ext === 'pdf') {
+                setFileType('pdf');
 
-        //     if (type === 'png' || type === 'jpg') {
-        //         // inline data URI
-        //         setSource({ uri: `data:image/${type};base64,${_b64}` });
-        //         setProcessData(false);
-        //     }
-        //     else if (type === 'pdf') {
-        //         const path = FileSystem.documentDirectory + `${fileName}.pdf`;
-        //         await FileSystem.writeAsStringAsync(path, _b64, {
-        //         encoding: FileSystem.EncodingType.Base64,
-        //         });
-        //         setSource({ uri: path.startsWith('file://') ? path : 'file://' + path });
-        //         setProcessData(false);
-        //     }
-        //     else {
-        //         // unsupported
-        //         setProcessData(false);
-        //     }
-        // };
+                // const path = FileSystem.documentDirectory + `${fileName}.pdf`;
+                // await FileSystem.writeAsStringAsync(path, _b64, {
+                // encoding: FileSystem.EncodingType.Base64,
+                // });
+                // setSource({ uri: path.startsWith('file://') ? path : 'file://' + path });
+                setProcessData(false);
 
-        // showPreview();
-    }, [attachmentLink, fileName]);
+            } else {
+                setFileType('unknown');
+                setProcessData(false);
+            }
+        };
+
+        showPreview();
+
+    }, [doc]);
 
     return (
     <View style={defaultCSS.ScreenContainer}>
         <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
 
         <View style={{ flex: 1 }}>
-            <HeaderBar title={`${"View Attachment:"}: `} checkBackBttn={true} />
+            <HeaderBar title={`${"View Attachment"}`} checkBackBttn={true} />
 
             {processData ? (
                 <View style={{ alignSelf: "center", }}>
@@ -63,7 +60,7 @@ const ViewAttachmentScreen = ({ navigation }: { navigation: any }) => {
                 </View>
             ) : (
             <>
-                {(fileType === 'png' || fileType === 'jpg') ? (
+                {(fileType === 'png' || fileType === 'jpg' || fileType === 'jpeg') ? (
                     <View style={styles.container}>
                         <Image
                             source={source as { uri: string }}
@@ -75,6 +72,8 @@ const ViewAttachmentScreen = ({ navigation }: { navigation: any }) => {
                     <View style={styles.container}>
                         <WebView
                             originWhitelist={['*']}
+                            // source={{ uri: source }}
+                            // source={source}
                             source={source as { uri: string }}
                             style={styles.webview}
                             useWebKit
@@ -93,7 +92,6 @@ const ViewAttachmentScreen = ({ navigation }: { navigation: any }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 40,
         alignItems: 'center',
     },
     image: {

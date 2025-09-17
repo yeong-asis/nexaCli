@@ -274,12 +274,12 @@ export const HeaderCSS = StyleSheet.create({
         height: 30,
         resizeMode: 'contain', 
         alignSelf: "center",
-        marginTop: 50,
+        marginTop: 40,
         marginLeft: 20,
         marginBottom: 15,
     },
     HeaderIconCSS: {
-        marginTop: 50,
+        marginTop: 40,
         marginRight: 20,
         marginBottom: 15,
     },
@@ -299,7 +299,7 @@ export const HeaderCSS = StyleSheet.create({
     },
     HeaderText: {
         fontFamily: FONTFAMILY.poppins_medium,
-        fontSize: 30,
+        fontSize: 28,
         color: HEADERBACKGROUNDCOLORCODE,
         fontWeight: "bold",
         alignSelf: "center"
@@ -329,7 +329,7 @@ export const FooterCSS = StyleSheet.create({
     FooterContainer: {
         padding: 10, 
         alignItems: 'flex-end',
-        marginBottom: 40,
+        marginBottom: 30,
     },
     FooterText: {
         color: COLORS.secondaryLightGreyHex,
@@ -374,10 +374,12 @@ export const AddItemScreenCSS = StyleSheet.create({
     Button: {
         alignSelf:"center",
         backgroundColor:HEADERBACKGROUNDCOLORCODE,
-        width:"31%",
+        width:"60%",
+        // width:"31%",
         justifyContent:"center",
         borderRadius: 8,
-        height: 60,
+        height: 50,
+        marginVertical: 5,
     },
     ButtonText: {
         fontWeight: "bold",
@@ -415,13 +417,13 @@ export const AddItemScreenCSS = StyleSheet.create({
     },
     TextArea: {
         backgroundColor: COLORS.primaryWhiteHex,
-        paddingVertical: 10
+        paddingVertical: 10,
     },
     dropdown: {
         height: 50,
         backgroundColor: COLORS.primaryWhiteHex,
         borderColor: COLORS.primaryLightGreyHex,
-        borderWidth: 1,
+        borderWidth: 0.4,
         borderRadius: 6,
         paddingHorizontal: 8,
     },
@@ -594,7 +596,7 @@ export const ButtonCSS = StyleSheet.create({
     },
     plusButton: {
         position: 'absolute',
-        bottom: 60,
+        bottom: 40,
         right: 30,
         width: 56,
         height: 56,
@@ -701,7 +703,7 @@ export const datepickerCSS = StyleSheet.create({
 
 export const TabCSS = StyleSheet.create({
     tabBarStyle: {
-        height: 80,
+        height: 60,
         position: 'absolute',
         backgroundColor: SECONDGREENCOLOR,
         // backgroundColor: COLORS.primaryWhiteHex,

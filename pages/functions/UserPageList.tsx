@@ -1,4 +1,6 @@
 import { Image } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { COLORS, HEADERBACKGROUNDCOLORCODE } from "../../themes/theme";
 
 export const UserPageList = [
     {
@@ -8,7 +10,6 @@ export const UserPageList = [
             <Image
                 style={{ width: 80, height: 80 }}
                 source={require('../../assets/serviceIcon.png')} 
-                // source={colorScheme === 'light' ? require('../assets/DashboardLight.png') : require('../assets/DashboardDark.png')} 
             />
         ),
         title: "Field Service",
@@ -18,10 +19,14 @@ export const UserPageList = [
         id: 2,
         index: 2,
         icon: (
+            // <Icon
+            //     name="cube-sharp"
+            //     size={80}
+            //     color={ COLORS.primaryDarkGreyHex }
+            // />
             <Image
                 style={{ width: 80, height: 80 }}
                 source={require('../../assets/stockIcon.png')} 
-                // source={colorScheme === 'light' ? require('../assets/FlowLight.png') : require('../assets/WorkflowDark.png')} 
             />
         ),
         // title: "Workflow",
@@ -33,6 +38,11 @@ export const UserPageList = [
         id: 3,
         index: 3,
         icon: (
+            // <Icon
+            //     name="newspaper-sharp"
+            //     size={80}
+            //     color={ COLORS.primaryDarkGreyHex }
+            // />
             <Image
                 style={{ width: 80, height: 80 }}
                 source={require('../../assets/reportIcon.png')} 
@@ -42,16 +52,4 @@ export const UserPageList = [
         navigate: "MainTask",
         // navigate: "/messagelist",
     },
-    // {
-    //     id: 4,
-    //     index: 4,
-    //     icon: (
-    //         <Image
-    //             style={{ width: 80, height: 80 }}
-    //             source={require('../assets/CRM.png')} 
-    //         />
-    //     ),
-    //     title: "Report",
-    //     navigate: "/...",
-    // },
 ];

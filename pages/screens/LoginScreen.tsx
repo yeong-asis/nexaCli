@@ -4,7 +4,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, StatusBar, Text, TextInput as TextInputs, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { COLORS } from '../../themes/theme';
+import { COLORS, SetBorderWidth } from '../../themes/theme';
 import { LoginManagementCSS, ButtonCSS, defaultCSS, FooterCSS } from '../../themes/CSS';
 import KeyboardAvoidWrapper from '../functions/KeyboardAvoidWrapper';
 import { IPAddress } from '../../objects/objects';
@@ -108,7 +108,7 @@ const LoginScreen = ({navigation}: any) => {
             )}
 
             <KeyboardAvoidWrapper>
-                <View style={{ flex: 1, height: Dimensions.get("screen").height* 0.9, justifyContent: "center"}}>
+                <View style={{ flex: 1, height: Dimensions.get("screen").height* 0.85, justifyContent: "center"}}>
                     {/* Logo */}
                     <View style={[LoginManagementCSS.widthAndAdjustment, {alignItems: "center"}]}>
                         <Image 

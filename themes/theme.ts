@@ -95,6 +95,8 @@ export const SECONDGREENCOLOR = "#CFDDBB";
 export const BLUEUSEFULCOLOR = "#3F51B5";
 export const BLACKUSEFULCOLOR = "#2C2C2C";
 
+export const SetBorderWidth = 0.4;
+
 export const MAINCOLOR = COLORS.primaryBlackHex;
 
 export const BUTTONCOLOR = COLORS.primaryBlackHex;

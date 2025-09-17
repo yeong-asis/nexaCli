@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Animated, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Animated, FlatList, Image, KeyboardAvoidingView, LogBox, Modal, PermissionsAndroid, Platform, Pressable, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
-import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
+import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE, SetBorderWidth } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
-import { AttachmentsProps, CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps } from '../../../objects/objects';
+import { CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { useRoute } from '@react-navigation/native';
@@ -15,9 +15,11 @@ import WorkflowLogCard from '../../../objects/Cards/WorkflowLogCard';
 import CommentLogCard from '../../../objects/Cards/CommentLogCard';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-// import DocumentPicker from 'react-native-document-picker';
+import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import { Swipeable } from 'react-native-gesture-handler';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { requestDownloadPermission } from '../../functions/requestPermission';
 
 type ProductItem = {
     id: string;
@@ -66,7 +68,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const [workflowLogs, setWorkflowLogs] = useState([]);
     const [commentLogs, setCommentLogs] = useState([]);
     const [replyTo, setReplyTo] = React.useState<CommentLogProps | null>(null);
-    const [currentAttachment, setCurrentAttachment] = useState<AttachmentsProps[]>([]);
+    // const [replyID, setReplyID] = useState("");
+    const [currentAttachment, setCurrentAttachment] = useState<any[]>([]);
 
     const [showSummary, setShowSummary] = useState(false);
 
@@ -78,6 +81,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     
     useEffect(() => {
         (async () => {
+            LogBox.ignoreAllLogs(true);
             setProcessData(true);
             await fetchedSelectionAPI();
             await fetchedDetailAPI();
@@ -88,58 +92,38 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
     const pickFiles = async () => {
         try {
-            // const results = await DocumentPicker.pick({
-            //     type: [DocumentPicker.types.allFiles], // 👈 allow all file types
-            //     allowMultiSelection: true,
-            // });
+            const results = await DocumentPicker.pick({
+                type: [DocumentPicker.types.allFiles],
+                allowMultiSelection: true,
+            });
 
-            // const filesWithBase64 = await Promise.all(
-            //     results.map(async (file) => {
-            //         let base64Data = null;
+            const filesWithBase64 = await Promise.all(
+                results.map(async (file) => {
+                    let base64Data = null;
 
-            //         // Only read base64 for non-video files (videos can be huge!)
-            //         if (!file.type?.startsWith('video/')) {
-            //             base64Data = await RNFS.readFile(file.uri, 'base64');
-            //         }
+                    // Only read base64 for non-video files (videos can be huge!)
+                    if (!file.type?.startsWith('video/')) {
+                        base64Data = await RNFS.readFile(file.uri, 'base64');
+                    }
 
-            //         return {
-            //             uri: file.uri,
-            //             name: file.name,
-            //             type: file.type ?? 'unknown',
-            //             size: file.size,
-            //             base64: base64Data, // 👈 available for images, pdf, docs, etc.
-            //         };
-            //     })
-            // );
+                    return {
+                        uri: file.uri,
+                        fileName: file.name,
+                        type: file.type ?? 'unknown',
+                        size: file.size,
+                        base64: base64Data, 
+                    };
+                })
+            );
 
-            // setAttachments((prev) => [...prev, ...filesWithBase64]);
+            setAttachments((prev) => [...prev, ...filesWithBase64]);
         } catch (err) {
-            // if (DocumentPicker.isCancel(err)) {
-            //     console.log('User cancelled');
-            // } else {
-            //     console.error(err);
-            // }
+            if (DocumentPicker.isCancel(err)) {
+                console.log('User cancelled');
+            } else {
+                console.error(err);
+            }
         }
-        // try {
-        //     const options: ImageLibraryOptions = {
-        //         mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
-        //         selectionLimit: 0,  // 0 means unlimited selection
-        //         includeBase64: false, // Optional: if you need base64 data
-        //     };
-
-        //     launchImageLibrary(options, (response) => {
-        //         if (response.didCancel) {
-        //             console.log('User cancelled picker');
-        //         } else if (response.errorCode) {
-        //             console.error('ImagePicker Error: ', response.errorMessage);
-        //         } else {
-        //             const picked: Asset[] = response.assets ?? [];
-        //             setAttachments((prev) => [...prev, ...picked]);
-        //         }
-        //     });
-        // } catch (err) {
-        //     console.error(err);
-        // }
     };
 
     const fetchedSelectionAPI = async() => {
@@ -360,6 +344,19 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     setCommentLogs(arrangedComments);
                 }
 
+                if(responseData.Documents && responseData.Documents.length>0){
+                    const formattedDocuments = responseData.Documents.map((item: any) => {
+                        return {
+                            pkkey: item.Id,
+                            FileName: item.FileName,
+                            FileBase64: item.FileBase64,
+                            FileSize: item.FileSize,
+                            Stage: item.Stage,
+                        };
+                    });
+                    setCurrentAttachment(formattedDocuments);
+                }
+
             }else{
                 Snackbar.show({
                     text: "View Log and Comment failed. ",
@@ -400,7 +397,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         return result;
     };
 
-    const ProcessingStep = async (
+    const EditSMQ = async (
         requestID: any, 
         category: any,
         movementType: any,
@@ -444,9 +441,20 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     Amount: (Number(p.quantity) || 0) * (Number(p.unitPrice) || 0)
                 }));
 
+                const documents = attachments.map((file: any) => {
+                    const extension = file.type ? `.${file.type.split('/')[1]}` : '';
+                    return {
+                        FileName: file.fileName ?? "",
+                        FileExtension: extension,
+                        FileBase64: file.base64 ?? "",
+                        FileSize: file.size ?? 0
+                    };
+                });
+
                 const request = {
-                    "APIAction": "Edit",
+                    "APIAction": "EditSMQ",
                     "SMQ": {
+                        "Id": Number(key),
                         "RequesterID": Number(requestID),
                         "Category": Number(category),
                         "MovementType": Number(movementType),
@@ -463,14 +471,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                         "SKIPValidator": false
                     },
                     "Products": formattedProducts,
-                    "Documents": [
-                        {
-                            "FileName": "ERD.png",
-                            "FileExtension": ".png",
-                            "FileBase64": "",
-                            "FileSize": 0
-                        }
-                    ]
+                    "Documents": documents
                 }
 
                 const response = await axios.post(
@@ -487,25 +488,14 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 const responseData=response.data;
 
                 if(responseData.Acknowledge==0) {
-                    Alert.alert(
-                        "Success",
-                        "Add SMQ Success.",
-                        [
-                            {
-                                text: "OK",
-                                onPress: () => {
-                                    navigation.reset({
-                                        index: 0,
-                                        routes: [{ name: "MainStock" }],
-                                    });
-                                },
-                            },
-                        ],
-                        { cancelable: false }
-                    );
+                    Snackbar.show({
+                        text: 'Edit SMQ Success.',
+                        duration: Snackbar.LENGTH_LONG,
+                    });
+                    setProcessData(false);
                 }else{
                     Snackbar.show({
-                        text: 'Add SMQ failed.',
+                        text: 'Edit SMQ failed.',
                         duration: Snackbar.LENGTH_LONG,
                     });
                     setProcessData(false);
@@ -525,13 +515,15 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     }
 
     const AddComment = async (
-        Comments: any
+        Comments: any,
+        replyTo: any,
     ) => {
         const getUserID = await AsyncStorage.getItem('UserID') ?? "";
         const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
         const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
 
         try {
+
             const responseDetail = await axios.post(
                 "http://192.168.168.150/NEXA/api/StockMovement/Post",
                 {
@@ -540,7 +532,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     "Comment": {
                         "ID": 0,
                         "SMQID": Number(key),
-                        "ParentCommentID": 0,
+                        "ParentCommentID": replyTo.pkkey ?? 0,
                         "Comment": Comments
                     }
                 },
@@ -555,7 +547,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
             const responseData=responseDetail.data;
             
             if(responseData.Acknowledge==0) {
-                setComments("")
+                setComments("");
+                setReplyTo(null);
                 fetchedLogCommentAPI();
             }else{
                 Snackbar.show({
@@ -572,6 +565,38 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
             });
         }
     }
+
+    const handleDownload = async (doc: any) => {
+        const hasPermission = await requestDownloadPermission();
+        if (!hasPermission) {
+            Alert.alert('Permission denied', 'Cannot download file without permission.');
+            return;
+        }
+
+        try {
+            const fileName = doc.FileName || 'downloaded_file';
+            const base64Data = doc.FileBase64;
+
+            if (!base64Data || base64Data.length === 0) {
+                Alert.alert('Download Error', 'No file data available');
+                return;
+            }
+
+            // Determine path
+            const path =
+            Platform.OS === 'android'
+                ? `${RNFS.DownloadDirectoryPath}/${fileName}`
+                : `${RNFS.DocumentDirectoryPath}/${fileName}`;
+
+            await RNFS.writeFile(path, base64Data, 'base64');
+
+            Alert.alert('Download Complete', `File saved to ${path}`);
+        } catch (err) {
+            console.error(err);
+            Alert.alert('Error', 'Failed to download file.');
+        }
+    };
+
 
     const showWorkflowLogCard = ({ item }: { item: WorkflowLogProps }) => {
         return (
@@ -590,13 +615,17 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
     const showCommentLogCard = ({ item }: { item: CommentLogProps }) => {
         const renderRightActions = () => (
-            <View style={{ justifyContent: 'center', backgroundColor: '#4CAF50', padding: 10 }}>
-                <Text style={{ color: 'white', fontWeight: 'bold' }}>Reply</Text>
+            <View style={{ padding: replyTo==null ? 15 : 0 }}>
+                {/* <Text style={{ color: 'white', fontWeight: 'bold' }}>Reply</Text> */}
             </View>
         );
 
         return (
-            <Swipeable renderRightActions={renderRightActions} onSwipeableOpen={() => setReplyTo(item)}>
+            <Swipeable renderRightActions={renderRightActions} onSwipeableOpen={() => {
+                if(item.parentCommentID=="0"){
+                    setReplyTo(item);
+                }
+            }}>
                 <CommentLogCard 
                     pkkey={item.pkkey}
                     personName={item.personName}
@@ -605,7 +634,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     SMQID={item.SMQID} 
                     process={item.process} 
                     status={item.status}  
-                    parentCommentID={item.parentCommentID}             
+                    parentCommentID={item.parentCommentID}    
+                    onReplyPress={() => setReplyTo(item)}         
                 />
             </Swipeable>
         );
@@ -844,6 +874,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         onChangeText={setPurpose}
                                         placeholder="Enter Purpose here"
                                         style={AddItemScreenCSS.TextArea}
+                                        outlineStyle={{ borderWidth: SetBorderWidth }}
                                     />
                                 </View>
 
@@ -860,11 +891,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         onChangeText={setRemark}
                                         placeholder="Enter Remark here"
                                         style={AddItemScreenCSS.TextArea}
+                                        outlineStyle={{ borderWidth: SetBorderWidth }}
                                     />
                                 </View>
 
                                 {/* ── Attach Files Section ──────────────────────────────────────── */}
                                 <View style={{ marginTop: 16 }}>
+
                                     {(requester==currentUserID) && (
                                         <TouchableOpacity
                                             onPress={()=>pickFiles()}
@@ -879,6 +912,36 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             <Text style={{ color: 'white', fontSize: 16 }}>Attach Files</Text>
                                         </TouchableOpacity>
                                     )}
+
+                                    {currentAttachment.map((doc, idx) => (
+                                        <View 
+                                        key={doc.Id ?? idx} 
+                                        style={{ 
+                                            flexDirection: "row", 
+                                            alignItems: "center", 
+                                            justifyContent: "space-between", 
+                                            paddingVertical: 8, 
+                                            borderBottomWidth: 1, 
+                                            borderBottomColor: "#ddd" 
+                                        }}
+                                        >
+                                        <Text style={{ flex: 1 }}>{doc.FileName || "Unnamed Document"}</Text>
+                                        
+                                        <TouchableOpacity 
+                                            onPress={() => handleDownload(doc)} 
+                                        >
+                                            <Ionicons name="download-outline" size={12} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => {
+                                            navigation.navigate('ViewAttachment', {
+                                                doc: doc, 
+                                            });
+                                        }} >
+                                            <Ionicons name="eye-outline" size={12} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
+                                        </TouchableOpacity>
+                                        </View>
+                                    ))}
+
 
                                     {attachments.map((file, idx) => (
                                     <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
@@ -901,10 +964,20 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     ))}
                                 </View>
 
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
+                                <View style={{ flexDirection: 'column', justifyContent: 'space-around', marginTop: 10 }}>
                                 { (requester==currentUserID) ? ( 
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
-                                        
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => {
+                                        EditSMQ(
+                                            requester,
+                                            category,
+                                            movementType,
+                                            receiveFrom,
+                                            deliverTo,
+                                            purpose,
+                                            remark,
+                                            products,
+                                            attachments,
+                                        )
                                     }}>
                                         <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                     </TouchableOpacity>
@@ -914,12 +987,12 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                 { (isValidators==true) ? (
                                     <>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
                                             setShowSummary(true)
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
                                             Snackbar.show({
                                                 text: 'Reject SMQ',
                                                 duration: Snackbar.LENGTH_LONG,
@@ -979,6 +1052,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             }}
                                             placeholder="0"
                                             style={AddItemScreenCSS.NormalTextInput}
+                                            outlineStyle={{ borderWidth: SetBorderWidth }}
                                             />
                                         </View>
 
@@ -996,6 +1070,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                                 }}
                                                 placeholder="Enter any notes"
                                                 style={AddItemScreenCSS.TextArea}
+                                                outlineStyle={{ borderWidth: SetBorderWidth }}
                                             />
                                         </View>
 
@@ -1025,10 +1100,20 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 </TouchableOpacity>
                                 )}
 
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
+                                <View style={{ flexDirection: 'column', justifyContent: 'space-around', marginTop: 5 }}>
                                 { (requester==currentUserID) ? ( 
                                     <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
-                                        
+                                        EditSMQ(
+                                            requester,
+                                            category,
+                                            movementType,
+                                            receiveFrom,
+                                            deliverTo,
+                                            purpose,
+                                            remark,
+                                            products,
+                                            attachments,
+                                        ) 
                                     }}>
                                         <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
                                     </TouchableOpacity>
@@ -1038,12 +1123,12 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                                 { (isValidators==true) ? (
                                     <>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
                                             setShowSummary(true)
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex, width: requester==currentUserID ? "31%" : "45%"}]} onPress={() => { 
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
                                             Snackbar.show({
                                                 text: 'Reject SMQ',
                                                 duration: Snackbar.LENGTH_LONG,
@@ -1069,10 +1154,11 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
                                         <FlatList 
                                             nestedScrollEnabled={false}
+                                            // nestedScrollEnabled={true}
                                             data={workflowLogs}
                                             keyExtractor={(item: any) => item.pkkey}
                                             renderItem={showWorkflowLogCard} 
-                                            style={{ height: workflowLogs.length == 1 ? 60 : workflowLogs.length == 2 ? 100 : workflowLogs.length == 3 ? 150 : workflowLogs.length == 4 ? 200 : 250 }}
+                                            // style={{ height: workflowLogs.length == 1 ? 60 : workflowLogs.length == 2 ? 100 : workflowLogs.length == 3 ? 150 : workflowLogs.length == 4 ? 200 : 250 }}
                                         />
                                     </View>
                                     <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
@@ -1086,11 +1172,12 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             <Text style={AddItemScreenCSS.TextInputFont}> View Comment</Text>
                                         </View>
                                         <FlatList 
-                                            nestedScrollEnabled={true}
+                                            nestedScrollEnabled={false}
+                                            // nestedScrollEnabled={true}
                                             data={commentLogs} 
                                             keyExtractor={(item: any) => item.pkkey}
                                             renderItem={showCommentLogCard} 
-                                            style={{ height: commentLogs.length == 1 ? 60 : commentLogs.length == 2 ? 100 : commentLogs.length == 3 ? 150 : commentLogs.length == 4 ? 200 : 250 }}
+                                            // style={{ height: commentLogs.length == 1 ? 60 : commentLogs.length == 2 ? 100 : commentLogs.length == 3 ? 150 : commentLogs.length == 4 ? 200 : 250 }}
                                         />
                                     </View>
                                     <View style={[defaultCSS.LineContainer, {marginTop: 20}]}></View>
@@ -1127,10 +1214,11 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             onChangeText={setComments}
                                             style={AddItemScreenCSS.TextArea}
                                             placeholder="Write your comment..."
+                                            outlineStyle={{ borderWidth: SetBorderWidth }}
                                         />
                                     </View>
 
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {marginTop: 10, width: "45%"}]} onPress={() => {AddComment(comments)}}>
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {marginTop: 10, width: "45%"}]} onPress={() => {AddComment(comments, replyTo)}}>
                                         <Text style={AddItemScreenCSS.ButtonText}> Comment </Text>
                                     </TouchableOpacity>
                                 </View>

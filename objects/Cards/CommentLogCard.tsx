@@ -1,27 +1,47 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CommentLogProps, WorkflowLogProps } from '../objects';
 import { BLUEUSEFULCOLOR, COLORS } from '../../themes/theme';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const CommentLogCard: React.FC<CommentLogProps> = ({
     pkkey,
     personName,
     comment,
     logOn,
+    SMQID,
+    process,
     status,
+    parentCommentID,
+    onReplyPress,
 }) => {
 
     return (
-        <View style={[styles.CardContainer, {}]}>
-            <View style={{flexDirection: "column", width: "100%"}}>
-                <View>
-                    <Text style={[styles.TextTitle, {color: BLUEUSEFULCOLOR}]}>{personName}</Text>
-                </View>
-                <View>
-                    <Text style={[styles.TextTitle, {}]}>{comment}</Text>
-                </View>
-                <View>
-                    <Text style={[styles.TextDescription, {textAlign: "right"}]}>{logOn}</Text>
+        <View style={[styles.CardContainer, {backgroundColor: parentCommentID=="0" ? COLORS.primaryWhiteHex : COLORS.primaryVeryLightGreyHex}]}>
+            <View style={{flexDirection: parentCommentID == "0" ? "column" : "row", width: "100%" }}>
+                {parentCommentID != "0" && (
+                    <View style={{width: "10%", justifyContent: "flex-start"}}>
+                        <Ionicons name="return-down-forward-outline" size={16} color={COLORS.primaryLightGreyHex} />
+                    </View>
+                )}
+                <View style={{flexDirection: "column", width: parentCommentID=="0" ? "100%" : "90%" }}>
+                    <View style={{justifyContent: "center",}}>
+                        <View>
+                            <Text style={[styles.TextTitle, {color: BLUEUSEFULCOLOR}]}>{personName}</Text>
+                        </View>
+                        <View>
+                            <Text style={[styles.TextTitle, {}]}>{comment}</Text>
+                        </View>
+                    </View>
+
+                    <View style={{flexDirection: "row", justifyContent: parentCommentID == "0" ? "space-between" : "flex-end"}}>
+                        {parentCommentID == "0" && (
+                            <TouchableOpacity onPress={onReplyPress}>
+                                <Text style={styles.ReplyText}>Reply</Text>
+                            </TouchableOpacity>
+                        )}
+                        <Text style={[styles.TextDescription, {textAlign: "right"}]}>{logOn}</Text>
+                    </View>
                 </View>
             </View>
         </View>
@@ -46,6 +66,13 @@ const styles = StyleSheet.create({
     TextDescription: {
         color: COLORS.primaryLightGreyHex,
         fontSize: 10,
+        marginTop: 5,
+    },
+    ReplyText: {
+        color: COLORS.primaryLightGreyHex,
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginTop: 5,
     },
 });
 

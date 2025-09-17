@@ -70,7 +70,7 @@ const App = () => {
           <Stack.Screen name="Dashboard" component={DashboardScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Setting" component={SettingScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{animation: 'slide_from_bottom'}} />
-          <Stack.Screen name="ViewAttachmnet" component={ViewAttachmentScreen} options={{animation: 'slide_from_bottom'}} />
+          <Stack.Screen name="ViewAttachment" component={ViewAttachmentScreen} options={{animation: 'slide_from_bottom'}} />
           
           <Stack.Screen name="WorkflowList" component={WorkflowListScreen} options={{animation: 'slide_from_bottom'}} />
           <Stack.Screen name="MainMaterial" component={MaterialListScreen} options={{animation: 'slide_from_bottom'}} />

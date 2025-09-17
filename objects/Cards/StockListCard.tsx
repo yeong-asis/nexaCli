@@ -14,6 +14,16 @@ const StockListCard: React.FC<WorkflowProps> = ({
 }) => {
     const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric',hour: '2-digit', minute: '2-digit' });
 
+    const statusColors: { [key: string]: string } = {
+        New: COLORS.secondaryLightGreyHex,
+        Validated: COLORS.primaryYellowHex,
+        Approved: COLORS.secondaryGreenHex,
+        Accepted: COLORS.primaryGreenHex,
+        Implemented: COLORS.primaryOrangeHex,
+        Close: COLORS.primaryDarkGreyHex,
+        Rejected: COLORS.primaryRedHex,
+    };
+
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
@@ -24,19 +34,21 @@ const StockListCard: React.FC<WorkflowProps> = ({
                     <Text style={[styles.TextDescription2, {}]}>{newFormatDate}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
-                    <Text style={[styles.TextStatus2, {
+                    {/* <Text style={[styles.TextStatus2, {
                         width: 120,
                     }]}>
                         {status}
-                    </Text>
-                    {/* <Text style={[styles.TextStatus, {
+                    </Text> */}
+
+                    <View style={{flex: 1}}></View>
+                    <Text style={[styles.TextStatus, {
                         width: 110,
                         textAlign: "center",
-                        backgroundColor: COLORS.secondaryLightGreyHex
-                        // backgroundColor: statusColors[status] || COLORS.primaryRedHex,
+                        // backgroundColor: COLORS.secondaryLightGreyHex
+                        backgroundColor: statusColors[status] || COLORS.primaryRedHex,
                     }]}>
                         {status}
-                    </Text> */}
+                    </Text>
                 </View>
             </View>
         </View>
@@ -78,7 +90,7 @@ const styles = StyleSheet.create({
     },
     TextStatus: {
         marginVertical: 5,
-        textAlignVertical: "center",
+        textAlignVertical: "bottom",
         alignSelf: "flex-end", 
         textAlign: "right", 
         width: 'auto', 

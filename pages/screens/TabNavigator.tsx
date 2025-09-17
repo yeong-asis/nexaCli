@@ -57,8 +57,8 @@ const TabNavigator = () => {
                 component={SettingScreen}
                 options={{ tabBarIcon: ({focused, color, size}) => (
                     <Icon
-                        name="cog-outline"
-                        size={32}
+                        name="settings-sharp"
+                        size={30}
                         color={
                             focused ? HEADERBACKGROUNDCOLORCODE : COLORS.secondaryLightGreyHex
                         }

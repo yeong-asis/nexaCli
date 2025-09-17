@@ -4,7 +4,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { Asset, ImageLibraryOptions, launchImageLibrary } from 'react-native-image-picker';
 import { Checkbox, Menu, TextInput } from "react-native-paper";
 import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../../../themes/CSS';
-import { BACKGROUNDCOLORCODE, COLORS, FONTFAMILY, HEADERBACKGROUNDCOLORCODE } from '../../../themes/theme';
+import { BACKGROUNDCOLORCODE, COLORS, FONTFAMILY, HEADERBACKGROUNDCOLORCODE, SetBorderWidth } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
 import { IPAddress, SelectionItem } from '../../../objects/objects';
@@ -12,6 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import DocumentPicker from 'react-native-document-picker';
+import RNFS from 'react-native-fs';
 
 type ProductItem = {
     id: string;
@@ -64,24 +66,37 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
 
     const pickFiles = async () => {
         try {
-            const options: ImageLibraryOptions = {
-                mediaType: 'mixed', // 'photo' | 'video' | 'mixed'
-                selectionLimit: 0,  // 0 means unlimited selection
-                includeBase64: false, // Optional: if you need base64 data
-            };
-
-            launchImageLibrary(options, (response) => {
-                if (response.didCancel) {
-                    console.log('User cancelled picker');
-                } else if (response.errorCode) {
-                    console.error('ImagePicker Error: ', response.errorMessage);
-                } else {
-                    const picked: Asset[] = response.assets ?? [];
-                    setAttachments((prev) => [...prev, ...picked]);
-                }
+            const results = await DocumentPicker.pick({
+                type: [DocumentPicker.types.allFiles],
+                allowMultiSelection: true,
             });
+
+            const filesWithBase64 = await Promise.all(
+                results.map(async (file) => {
+                    let base64Data = null;
+
+                    // Only read base64 for non-video files (videos can be huge!)
+                    if (!file.type?.startsWith('video/')) {
+                        base64Data = await RNFS.readFile(file.uri, 'base64');
+                    }
+
+                    return {
+                        uri: file.uri,
+                        fileName: file.name,
+                        type: file.type ?? 'unknown',
+                        size: file.size,
+                        base64: base64Data, 
+                    };
+                })
+            );
+
+            setAttachments((prev) => [...prev, ...filesWithBase64]);
         } catch (err) {
-            console.error(err);
+            if (DocumentPicker.isCancel(err)) {
+                console.log('User cancelled');
+            } else {
+                console.error(err);
+            }
         }
     };
 
@@ -237,6 +252,16 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                     Amount: (Number(p.quantity) || 0) * (Number(p.unitPrice) || 0)
                 }));
 
+                const documents = attachments.map((file: any) => {
+                    const extension = file.type ? `.${file.type.split('/')[1]}` : '';
+                    return {
+                        FileName: file.fileName ?? "",
+                        FileExtension: extension,
+                        FileBase64: file.base64 ?? "",
+                        FileSize: file.size ?? 0
+                    };
+                });
+
                 const request = {
                     "APIAction": "AddSMQ",
                     "SMQ": {
@@ -256,17 +281,8 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                         "SKIPValidator": false
                     },
                     "Products": formattedProducts,
-                    "Documents": [
-                        {
-                            "FileName": "ERD.png",
-                            "FileExtension": ".png",
-                            "FileBase64": "",
-                            "FileSize": 0
-                        }
-                    ]
+                    "Documents": documents
                 }
-
-                console.log(request);
 
                 const response = await axios.post(
                     "http://192.168.168.150/NEXA/api/StockMovement/Post",
@@ -280,8 +296,6 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                 );
 
                 const responseData=response.data;
-
-                console.log(responseData);
 
                 if(responseData.Acknowledge==0) {
                     Alert.alert(
@@ -324,7 +338,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
             <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
             
             <View style={{ flex: 1 }}>
-                <HeaderBar title={`Add Stock Movement: `} checkBackBttn={true} />
+                <HeaderBar title={`Add SMQ `} checkBackBttn={true} />
                 <View style={defaultCSS.LineContainer}></View>
 
                 {processData ? (
@@ -560,6 +574,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         onChangeText={setPurpose}
                                         style={AddItemScreenCSS.TextArea} 
                                         placeholder="Enter Purpose here"
+                                        outlineStyle={{ borderWidth: SetBorderWidth }}
                                     />
                                 </View>
 
@@ -576,6 +591,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                         onChangeText={setRemark}
                                         style={AddItemScreenCSS.TextArea}
                                         placeholder="Enter Remark here"
+                                        outlineStyle={{ borderWidth: SetBorderWidth }}
                                     />
                                 </View>
 
@@ -663,6 +679,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                             }}
                                             placeholder="0"
                                             style={AddItemScreenCSS.NormalTextInput}
+                                            outlineStyle={{ borderWidth: SetBorderWidth }}
                                             />
                                         </View>
 
@@ -680,6 +697,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                                                 }}
                                                 placeholder="Enter any notes"
                                                 style={AddItemScreenCSS.TextArea}
+                                                outlineStyle={{ borderWidth: SetBorderWidth }}
                                             />
                                         </View>
 

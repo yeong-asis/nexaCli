@@ -179,19 +179,12 @@ export interface CommentLogProps {
     logOn: string;
     status: string;
     parentCommentID: string;
+    onReplyPress: any;
 }
 
 export interface Validators {
     pkkey: string;
     name: string;
-}
-
-export interface AttachmentsProps {
-    uri: string;
-    name: string;
-    type: string;
-    size: number;
-    base64: string | null;
 }
 
 export interface WorkflowInfoProps {

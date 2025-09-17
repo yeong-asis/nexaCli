@@ -30,14 +30,14 @@ const HeaderBar: React.FC<HeaderBarProps> = ({title, checkBackBttn, phoneID, per
             source={require('../../assets/NexaLogoBWBoard.png')} 
             style={HeaderCSS.HeaderPictureCSS} />
             <View>
-                <TouchableOpacity onPress={async () => {}}>
+                {/* <TouchableOpacity onPress={async () => {}}>
                     <Icon
                         name="ellipsis-vertical"
                         size={28}
                         color={ COLORS.primaryWhiteHex }
                         style={HeaderCSS.HeaderIconCSS}
                     />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
         </View>
         {checkBackBttn==true ? (

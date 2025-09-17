@@ -58,8 +58,8 @@ export const ProfileScreen = ({navigation}: any) => {
             <View style={{width: Dimensions.get("screen").width, height: Dimensions.get("screen").height*0.9, backgroundColor: COLORS.primaryVeryLightGreyHex, paddingTop: 20}}>
                 <View style={{ alignSelf: "center", }}>
                     <View style={{
-                        width: 300,
-                        height: 300,
+                        width: 200,
+                        height: 200,
                         borderRadius: 300/2,
                         backgroundColor: 'white',
                         justifyContent: 'center',
@@ -72,7 +72,7 @@ export const ProfileScreen = ({navigation}: any) => {
                         alignSelf: "center", 
                     }}>
                         {/* Person icon in middle */}
-                        <Ionicons name="person-outline" size={200} color={COLORS.secondaryLightGreyHex} />
+                        <Ionicons name="person-outline" size={150} color={COLORS.secondaryLightGreyHex} />
                     </View>
 
                     <View style={{flexDirection: "column", marginVertical: 40 }}>
