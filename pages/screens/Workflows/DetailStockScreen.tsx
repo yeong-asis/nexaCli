@@ -7,7 +7,7 @@ import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../
 import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE, SetBorderWidth } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
-import { CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps, WorkflowStatusMap } from '../../../objects/objects';
+import { CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps, WorkflowNextStatusMap, WorkflowStatusMap } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { useRoute } from '@react-navigation/native';
@@ -34,6 +34,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const { key, code, status } = route.params as any;
 
     const [currentUserID, setCurrentUserID] = useState("");
+    const [currentUserName, setCurrentUserName] = useState("");
 
     const [processData, setProcessData] = useState(false);
     const [selectedType, setSelectedType] = useState("General");
@@ -73,8 +74,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const [currentAttachment, setCurrentAttachment] = useState<any[]>([]);
 
     const [showSummary, setShowSummary] = useState(false);
+    const [modalAction, setModalAction] = useState<"approve" | "reject" | null>(null);
     const [disableEdit, setDisableEdit] = useState(true);
-    const [checkCommentEdit, setCheckCommentEdit] = useState(true);
 
     // Products Part
     const [products, setProducts] = useState<ProductItem[]>([]);
@@ -133,8 +134,10 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         const getUserID = await AsyncStorage.getItem('UserID') ?? "";
         const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
         const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+        const getUserName = await AsyncStorage.getItem('FullName') ?? "";
 
         setCurrentUserID(getUserID);
+        setCurrentUserName(getUserName);
 
         try {
             const response = await axios.post(
@@ -270,19 +273,10 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     };
                 });
                 setProducts(formattedMessages);
-
-                if(responseData.SMQ.RequesterID==getUserID){
-                    setCheckCommentEdit(true)
-                }else{
-                    setCheckCommentEdit(false)
-                }
                 
-
                 if((status=="New" || status=="Validated" || status=="Rejected") && (responseData.SMQ.RequesterID==getUserID)){
-                    console.log("can edit")
                     setDisableEdit(false);
                 }else{
-                    console.log("cannot edit")
                     setDisableEdit(true);
                 }
 
@@ -799,11 +793,19 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 });
 
                 const countStage = WorkflowStatusMap[status] ?? 1; 
-                const workflowStage = countStage+1;
+                let workflowStage = countStage+1;
                 let WorkflowStatus = 0;
 
                 if(getStatus=="yes"){
                     WorkflowStatus = workflowStage;
+                }else if(getStatus=="close"){
+                    WorkflowStatus = 9;
+                }else if(getStatus=="revise"){
+                    workflowStage = 7;
+                    WorkflowStatus = 1;
+                }else if(getStatus=="cancel"){
+                    workflowStage = 7;
+                    WorkflowStatus = 10;
                 }else{
                     WorkflowStatus = 0;
                 }
@@ -834,7 +836,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     "Documents": documents
                 }
 
-                // console.log(request)
+                console.log(request)
 
                 const response = await axios.post(
                     "http://192.168.168.150/NEXA/api/StockMovement/Post",
@@ -851,8 +853,15 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
                 if(responseData.Acknowledge==0) {
                     Alert.alert(
-                        getStatus=="yes" ? "Success" : "Reject SMQ",
-                        getStatus=="yes" ? "Approve SMQ Success." : "SMQ has been rejected",
+                        getStatus=="yes" || getStatus=="close" || getStatus=="revise" ? "Success" 
+                            : getStatus=="cancel" ? "Cancel SMQ" 
+                            : "Reject SMQ",
+
+                        getStatus=="yes" ? "Process to SMQ next step successfully." 
+                            : getStatus=="close" ? "Close SMQ Success." 
+                            : getStatus=="revise" ? "Revise SMQ Success."
+                            : getStatus=="cancel" ? "SMQ has been cancelled." 
+                            : "SMQ has been rejected",
                         [
                             {
                                 text: "OK",
@@ -871,6 +880,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                         text: responseData.Message,
                         duration: Snackbar.LENGTH_LONG,
                     });
+                    console.log(responseData.Message)
                     setProcessData(false);
                 }
 
@@ -903,6 +913,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     };
 
     const showCommentLogCard = ({ item }: { item: CommentLogProps }) => {
+        let CanEdit = false;
+        if(currentUserName==item.personName){
+            CanEdit = true;
+        }else{
+            CanEdit = false;
+        }
+        
         return (
             <CommentLogCard 
                 pkkey={item.pkkey}
@@ -913,7 +930,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 process={item.process}
                 status={item.status}
                 parentCommentID={item.parentCommentID}
-                checkCommentEdit={checkCommentEdit}
+                checkCommentEdit={CanEdit}
                 onReplyPress={() => setReplyTo(item)}
                 onEditPress={() => {
                     setComments(item.comment);
@@ -1184,7 +1201,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 {/* ── Attach Files Section ──────────────────────────────────────── */}
                                 <View style={{ marginTop: 16 }}>
 
-                                    {(requester==currentUserID) && (
+                                    {(requester==currentUserID && !disableEdit) && (
                                         <TouchableOpacity
                                             onPress={()=>pickFiles()}
                                             style={{
@@ -1225,6 +1242,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             }} >
                                                 <Ionicons name="eye-outline" size={18} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
                                             </TouchableOpacity>
+                                            {!disableEdit && (
                                             <TouchableOpacity onPress={() => {
                                                 Alert.alert(
                                                     `Delete ${doc.FileName}`,
@@ -1237,8 +1255,42 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                                         {
                                                             text: "Delete",
                                                             style: "destructive", // iOS red button
-                                                            onPress: () => {
-                                                                
+                                                            onPress: async () => {
+                                                                const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+                                                                const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+                                                                console.log(currentUserID+" - "+doc.pkkey+" - "+key)
+                                                                const responseDetail = await axios.post(
+                                                                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                                                                    {
+                                                                        "APIAction": "DeleteDocument",
+                                                                        "UserID": Number(currentUserID),
+                                                                        "Document": {
+                                                                            "Id": Number(doc.pkkey),
+                                                                            "DocHubID": Number(key),
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        auth: {
+                                                                            username: getUserEmail,
+                                                                            password: getUserPassword
+                                                                        }
+                                                                    }
+                                                                );
+
+                                                                const responseData=responseDetail.data;
+                                                
+                                                                if(responseData.Acknowledge==0) {
+                                                                    await fetchedLogCommentAPI();
+                                                                    Snackbar.show({
+                                                                        text: "Delete Document Successfully ",
+                                                                        duration: Snackbar.LENGTH_LONG,
+                                                                    });
+                                                                }else{
+                                                                    Snackbar.show({
+                                                                        text: "Delete Document failed ",
+                                                                        duration: Snackbar.LENGTH_LONG,
+                                                                    });
+                                                                }
                                                             }
                                                         }
                                                     ],
@@ -1247,6 +1299,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             }} >
                                                 <Ionicons name="trash-outline" size={18} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
                                             </TouchableOpacity>
+                                            )}
                                         </View>
                                     ))}
 
@@ -1273,7 +1326,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 </View>
 
                                 <View style={{ flexDirection: 'column', justifyContent: 'space-around', marginTop: 10 }}>
-                                { (requester==currentUserID) ? ( 
+                                { (requester==currentUserID && (status=="New" || status=="Validated" || status=="Rejected")) ? ( 
                                     <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => {
                                         EditSMQ(
                                             requester,
@@ -1287,55 +1340,85 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             attachments,
                                         )
                                     }}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
+                                        <Text style={AddItemScreenCSS.ButtonText}> {"Edit"} </Text>
                                     </TouchableOpacity>
                                 ) : ( 
                                     <></> 
                                 )}
 
-                                { (isValidators==true) ? (
+                                { (isValidators==true) && (
                                     <>
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
+                                            setModalAction("approve"); 
                                             setShowSummary(true)
                                         }}>
-                                            <Text style={AddItemScreenCSS.ButtonText}> {status=="New" ? "Validate": "Approve"} </Text>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {WorkflowNextStatusMap[status]} </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
-                                            Alert.alert(
-                                                "Confirm Reject",
-                                                "Are you sure you want to reject this SMQ?",
-                                                [
-                                                    {
-                                                        text: "Cancel",
-                                                        style: "cancel"
-                                                    },
-                                                    {
-                                                        text: "Reject",
-                                                        style: "destructive", // iOS red button
-                                                        onPress: () => {
-                                                            processNextStep(
-                                                                requester,
-                                                                category,
-                                                                movementType,
-                                                                receiveFrom,
-                                                                deliverTo,
-                                                                purpose,
-                                                                remark,
-                                                                products,
-                                                                attachments,
-                                                                "no",
-                                                            );
-                                                        }
-                                                    }
-                                                ],
-                                                { cancelable: true }
-                                            );
+                                            setModalAction("reject"); 
+                                            setShowSummary(true)
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
                                         </TouchableOpacity>
                                     </>
-                                ) : (
-                                    <></>
+                                )}
+
+                                { (requester==currentUserID && status=="Completed") && (
+                                    <>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
+                                            processNextStep(
+                                                requester,
+                                                category,
+                                                movementType,
+                                                receiveFrom,
+                                                deliverTo,
+                                                purpose,
+                                                remark,
+                                                products,
+                                                attachments,
+                                                "close",
+                                            );
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {"Close"} </Text>
+                                        </TouchableOpacity>
+                                    </>
+                                )}
+
+                                { (requester==currentUserID && status=="Rejected") && (
+                                    <>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
+                                            processNextStep(
+                                                requester,
+                                                category,
+                                                movementType,
+                                                receiveFrom,
+                                                deliverTo,
+                                                purpose,
+                                                remark,
+                                                products,
+                                                attachments,
+                                                "revise",
+                                            );
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {"Revise"} </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
+                                            processNextStep(
+                                                requester,
+                                                category,
+                                                movementType,
+                                                receiveFrom,
+                                                deliverTo,
+                                                purpose,
+                                                remark,
+                                                products,
+                                                attachments,
+                                                "cancel",
+                                            );
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {"Cancel"} </Text>
+                                        </TouchableOpacity>
+                                    </>
                                 )}
                                 </View>
 
@@ -1603,13 +1686,13 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     style={[AddItemScreenCSS.Button, { marginTop: 10 }]} 
                                     onPress={() => {
                                         if (editTarget) {
-                                            EditComment(editTarget.pkkey, comments, editTarget.parentCommentID); // 🔹 edit existing
+                                            EditComment(editTarget.pkkey, comments, editTarget.parentCommentID);
                                             setEditTarget(null);
                                         } else {
-                                            AddComment(comments, replyTo);           // 🔹 new comment or reply
+                                            AddComment(comments, replyTo);
                                             setReplyTo(null);
                                         }
-                                        setComments(""); // clear text
+                                        setComments("");
                                     }}>
                                         <Text style={AddItemScreenCSS.ButtonText}>
                                             {editTarget ? "Update Comment" : "Comment"}
@@ -1687,7 +1770,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             <Text style={AddItemScreenCSS.ButtonText}>Close</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity 
-                                            style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%"}]}
+                                            style={[AddItemScreenCSS.Button, { backgroundColor: modalAction === "reject" ? COLORS.primaryRedHex : COLORS.primaryGreenHex, width:"45%"}]}
                                             onPress={() => {
                                                 setShowSummary(false);
                                                 processNextStep(
@@ -1700,15 +1783,11 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                                     remark,
                                                     products,
                                                     attachments,
-                                                    "yes",
+                                                    modalAction == "reject" ? "reject" : "yes",
                                                 );
-                                                // Snackbar.show({
-                                                //     text: 'Final Approve Sent!',
-                                                //     duration: Snackbar.LENGTH_LONG,
-                                                // });
                                             }}
                                         >
-                                            <Text style={AddItemScreenCSS.ButtonText}>Confirm</Text>
+                                            <Text style={AddItemScreenCSS.ButtonText}>{modalAction === "reject" ? "Reject" : "Confirm"}</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>

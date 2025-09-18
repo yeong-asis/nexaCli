@@ -19,6 +19,8 @@ const CommentLogCard: React.FC<CommentLogProps> = ({
     onDeletePress,
 }) => {
 
+    console.log(checkCommentEdit)
+
     return (
         <View style={[styles.CardContainer, {backgroundColor: parentCommentID=="0" ? COLORS.primaryWhiteHex : COLORS.primaryVeryLightGreyHex}]}>
             <View style={{flexDirection: parentCommentID == "0" ? "column" : "row", width: "100%" }}>
@@ -37,7 +39,7 @@ const CommentLogCard: React.FC<CommentLogProps> = ({
                         </View>
                     </View>
 
-                    <View style={{flexDirection: "row", justifyContent: parentCommentID == "0" ? "space-between" : "flex-end"}}>
+                    <View style={{flexDirection: "row", justifyContent: "space-between"}}>
                         <View style={{flexDirection: "row", justifyContent: "flex-start"}}>
                             {parentCommentID == "0" && (
                             <TouchableOpacity onPress={onReplyPress}>

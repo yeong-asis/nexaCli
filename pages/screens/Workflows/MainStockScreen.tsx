@@ -18,14 +18,15 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
 
     const [fetchedData, setFetchedData] = useState<WorkflowProps[]>([]);
     const [itemFinish, setItemFinish] = useState(false);
-    const [currentPage, setCurrentPage] = useState<number>(0);
-    const [itemPerPage, setItemPerPage] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [itemPerPage, setItemPerPage] = useState<number>(5);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         (async () => {
             setProcessData(true);
             setFetchedData([]);
+            setCurrentPage(1);
             await fetchedDataAPI(currentPage, itemPerPage);
         })();
     }, []);
@@ -89,8 +90,13 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                     }
                     setProcessData(false);
                 }else{
+                    if(formattedMessages.length<itemPerPage){
+                        setItemFinish(true);
+                    }else{
+                        setItemFinish(false);
+                    }
+
                     setFetchedData((prevData) => [...prevData, ...formattedMessages]);
-                    setItemFinish(false);
                     setProcessData(false);
                 }
                     
@@ -117,16 +123,17 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        setTimeout(async () => {
-            await fetchedDataAPI(0, itemPerPage);
-        }, 1000);
+        setProcessData(true);
+        setFetchedData([]);
+        setCurrentPage(1);
+        await fetchedDataAPI(1, itemPerPage);
         setRefreshing(false);
     };
 
-    const loadMore = async () => {
-        const passPage = currentPage + 1;
-        setCurrentPage(passPage);
-        await fetchedDataAPI(passPage, itemPerPage);
+    const loadMore = async (passPage: number) => {
+        const getNextPage = passPage + 1;
+        setCurrentPage(getNextPage);
+        await fetchedDataAPI(getNextPage, itemPerPage);
     }
 
     const showWorkflowCard = ({ item }: { item: WorkflowProps }) => {
@@ -181,7 +188,7 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                                 data={fetchedData}
                                 renderItem={showWorkflowCard}
                                 removeClippedSubviews={false}
-                                onEndReached={loadMore}
+                                onEndReached={() => {loadMore(currentPage)}}
                                 refreshControl={<RefreshControl
                                     refreshing={refreshing}
                                     onRefresh={onRefresh}
