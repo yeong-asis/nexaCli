@@ -24,7 +24,7 @@ target 'Nexa' do
   )
 
   # pod 'FirebaseCoreInternal', :modular_headers => true
-  # pod 'GoogleUtilities', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
   # pod 'FirebaseCore', :modular_headers => true
 
   post_install do |installer|
