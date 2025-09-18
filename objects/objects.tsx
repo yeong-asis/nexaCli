@@ -1,5 +1,6 @@
 import { Image, Text, View } from "react-native";
 import { IconListPicture } from "../themes/CSS";
+import { COLORS } from "../themes/theme";
 
 export const IPAddress = "http://192.168.0.90:7149";
 
@@ -21,6 +22,37 @@ export const CRMMenuItems = [
     { id: 2, title: "Customer", navigate: "/crm/personcrm", type: "customer" },
     { id: 3, title: "Supplier", navigate: "/crm/personcrm", type: "supplier" },
 ];
+
+export const statusContainerColors: { [key: string]: string } = {
+    New: "#e8f5ff",
+    Validated: "#D3EDF5",
+    Approved: "#DAF5E6",
+    Accepted: "#FFECCC",
+    Completed: "#E0E7FF",
+    Closed: COLORS.secondaryLightGreyHex,
+    Rejected: "#FFDEDE",
+};
+
+export const statusTextColors: { [key: string]: string } = {
+    New: "#0d99ff",
+    Validated: "#58BAD7",
+    Approved: "#3AC977",
+    Accepted: "#FF9F00",
+    Completed: "#3730A3",
+    Closed: COLORS.primaryWhiteHex,
+    Rejected: "#FF5E5E",
+};
+
+export const WorkflowStatusMap: Record<string, number> = {
+    "Reject": 0,
+    "New": 1,
+    "Validated": 2,
+    "Approved": 3,
+    "Accepted": 4,
+    "Complete": 5,       // or "Complete/Implement"
+    "Closed": 9,
+    "Cancelled": 10
+};
 
 export interface BookingProps {
     megaBookingCode: string;
@@ -179,7 +211,10 @@ export interface CommentLogProps {
     logOn: string;
     status: string;
     parentCommentID: string;
+    checkCommentEdit: boolean;
     onReplyPress: any;
+    onEditPress: any;
+    onDeletePress: any;
 }
 
 export interface Validators {

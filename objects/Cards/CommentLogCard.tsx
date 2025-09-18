@@ -13,7 +13,10 @@ const CommentLogCard: React.FC<CommentLogProps> = ({
     process,
     status,
     parentCommentID,
+    checkCommentEdit,
     onReplyPress,
+    onEditPress,
+    onDeletePress,
 }) => {
 
     return (
@@ -35,11 +38,25 @@ const CommentLogCard: React.FC<CommentLogProps> = ({
                     </View>
 
                     <View style={{flexDirection: "row", justifyContent: parentCommentID == "0" ? "space-between" : "flex-end"}}>
-                        {parentCommentID == "0" && (
+                        <View style={{flexDirection: "row", justifyContent: "flex-start"}}>
+                            {parentCommentID == "0" && (
                             <TouchableOpacity onPress={onReplyPress}>
                                 <Text style={styles.ReplyText}>Reply</Text>
                             </TouchableOpacity>
-                        )}
+                            )}
+
+                            {checkCommentEdit==true && (
+                            <>
+                            <TouchableOpacity onPress={onEditPress}>
+                                <Text style={styles.ReplyText}>Edit</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={onDeletePress}>
+                                <Text style={styles.ReplyText}>Delete</Text>
+                            </TouchableOpacity>
+                            </>
+                            )}
+                        </View>
+                        
                         <Text style={[styles.TextDescription, {textAlign: "right"}]}>{logOn}</Text>
                     </View>
                 </View>
@@ -65,14 +82,14 @@ const styles = StyleSheet.create({
     },
     TextDescription: {
         color: COLORS.primaryLightGreyHex,
-        fontSize: 10,
+        fontSize: 11,
         marginTop: 5,
     },
     ReplyText: {
         color: COLORS.primaryLightGreyHex,
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: 11,
         marginTop: 5,
+        marginRight: 15
     },
 });
 

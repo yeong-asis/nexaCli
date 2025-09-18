@@ -1,7 +1,8 @@
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import { WorkflowProps } from '../objects';
+import { statusContainerColors, statusTextColors, WorkflowProps } from '../objects';
 import { COLORS, HEADERBACKGROUNDCOLORCODE } from '../../themes/theme';
+import { ChangeDateTime } from '../../pages/functions/StandardFunction';
 
 
 const StockListCard: React.FC<WorkflowProps> = ({
@@ -12,18 +13,6 @@ const StockListCard: React.FC<WorkflowProps> = ({
     categoryName,
     createdDate,
 }) => {
-    const newFormatDate = new Date(createdDate).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric',hour: '2-digit', minute: '2-digit' });
-
-    const statusColors: { [key: string]: string } = {
-        New: COLORS.secondaryLightGreyHex,
-        Validated: COLORS.primaryYellowHex,
-        Approved: COLORS.secondaryGreenHex,
-        Accepted: COLORS.primaryGreenHex,
-        Implemented: COLORS.primaryOrangeHex,
-        Close: COLORS.primaryDarkGreyHex,
-        Rejected: COLORS.primaryRedHex,
-    };
-
     return (
         <View style={[styles.CardContainer, {}]}>
             <View style={{flexDirection: "row"}}>
@@ -31,7 +20,7 @@ const StockListCard: React.FC<WorkflowProps> = ({
                     <Text style={[styles.TextTitle, {width: "100%",}]}>{code}</Text>
                     <Text style={[styles.TextDescription, {}]}>{RequesterName}</Text>
                     <Text style={[styles.TextDescription2, {}]}>{categoryName}</Text>
-                    <Text style={[styles.TextDescription2, {}]}>{newFormatDate}</Text>
+                    <Text style={[styles.TextDescription2, {}]}>{ChangeDateTime(createdDate)}</Text>
                 </View>
                 <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
                     {/* <Text style={[styles.TextStatus2, {
@@ -44,8 +33,8 @@ const StockListCard: React.FC<WorkflowProps> = ({
                     <Text style={[styles.TextStatus, {
                         width: 110,
                         textAlign: "center",
-                        // backgroundColor: COLORS.secondaryLightGreyHex
-                        backgroundColor: statusColors[status] || COLORS.primaryRedHex,
+                        backgroundColor: statusContainerColors[status] || COLORS.primaryRedHex,
+                        color: statusTextColors[status] || COLORS.primaryWhiteHex,
                     }]}>
                         {status}
                     </Text>
@@ -93,14 +82,13 @@ const styles = StyleSheet.create({
         textAlignVertical: "bottom",
         alignSelf: "flex-end", 
         textAlign: "right", 
-        width: 'auto', 
         fontWeight: "bold", 
         fontSize: 16, 
         color: COLORS.primaryWhiteHex,
-        borderWidth: 0.4, 
-        borderRadius: 20, 
-        paddingHorizontal: 15, 
-        paddingVertical: 5
+        borderWidth: 1, 
+        borderRadius: 8, 
+        borderColor: "#CCC",
+        paddingVertical: 6
     },
     TextStatus2: {
         flex: 1,

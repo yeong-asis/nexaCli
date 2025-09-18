@@ -176,7 +176,46 @@ export const defaultCSS = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 999,
-    }
+    },
+    ModalBackground: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    ModalContainer: {
+        backgroundColor: COLORS.primaryWhiteHex,
+        borderRadius: 12,
+        padding: 20,
+        width: '90%',
+        maxHeight: '80%',
+    },
+    ModalMainTextTitle: {
+        fontWeight: 'bold', 
+        fontSize: 18, 
+        marginBottom: 15,
+        fontFamily: FONTFAMILY.poppins_medium,
+    },
+    ModalFontContainer: {
+        flexDirection: "row"
+    },
+    ModalTextTitle: {
+        fontWeight: 'bold', 
+        fontSize: 14, 
+        fontFamily: FONTFAMILY.poppins_medium,
+        marginRight: 10,
+    },
+    ModalTextTitle2: { 
+        fontSize: 14, 
+        fontFamily: FONTFAMILY.poppins_medium,
+    },
+    ModalProductContainer: {
+        marginVertical: 5, 
+        padding: 8, 
+        borderWidth: 1, 
+        borderColor: '#ccc', 
+        borderRadius: 6
+    },
 });
 
 export const LoginManagementCSS = StyleSheet.create({
@@ -374,8 +413,7 @@ export const AddItemScreenCSS = StyleSheet.create({
     Button: {
         alignSelf:"center",
         backgroundColor:HEADERBACKGROUNDCOLORCODE,
-        width:"60%",
-        // width:"31%",
+        width:"55%",
         justifyContent:"center",
         borderRadius: 8,
         height: 50,

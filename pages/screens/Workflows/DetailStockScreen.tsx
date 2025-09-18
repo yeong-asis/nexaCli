@@ -7,7 +7,7 @@ import { AddItemScreenCSS, ButtonCSS, defaultCSS, LoginManagementCSS } from '../
 import { BACKGROUNDCOLORCODE, COLORS, HEADERBACKGROUNDCOLORCODE, SetBorderWidth } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import axios from 'axios';
-import { CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps } from '../../../objects/objects';
+import { CommentLogProps, IPAddress, SelectionItem, Validators, WorkflowLogProps, WorkflowStatusMap } from '../../../objects/objects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { useRoute } from '@react-navigation/native';
@@ -20,6 +20,7 @@ import RNFS from 'react-native-fs';
 import { Swipeable } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { requestDownloadPermission } from '../../functions/requestPermission';
+import { ChangeDateTime } from '../../functions/StandardFunction';
 
 type ProductItem = {
     id: string;
@@ -68,10 +69,12 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     const [workflowLogs, setWorkflowLogs] = useState([]);
     const [commentLogs, setCommentLogs] = useState([]);
     const [replyTo, setReplyTo] = React.useState<CommentLogProps | null>(null);
-    // const [replyID, setReplyID] = useState("");
+    const [editTarget, setEditTarget] = useState<CommentLogProps | null>(null);
     const [currentAttachment, setCurrentAttachment] = useState<any[]>([]);
 
     const [showSummary, setShowSummary] = useState(false);
+    const [disableEdit, setDisableEdit] = useState(true);
+    const [checkCommentEdit, setCheckCommentEdit] = useState(true);
 
     // Products Part
     const [products, setProducts] = useState<ProductItem[]>([]);
@@ -267,6 +270,21 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     };
                 });
                 setProducts(formattedMessages);
+
+                if(responseData.SMQ.RequesterID==getUserID){
+                    setCheckCommentEdit(true)
+                }else{
+                    setCheckCommentEdit(false)
+                }
+                
+
+                if((status=="New" || status=="Validated" || status=="Rejected") && (responseData.SMQ.RequesterID==getUserID)){
+                    console.log("can edit")
+                    setDisableEdit(false);
+                }else{
+                    console.log("cannot edit")
+                    setDisableEdit(true);
+                }
 
             }else{
                 Snackbar.show({
@@ -492,6 +510,19 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                         text: 'Edit SMQ Success.',
                         duration: Snackbar.LENGTH_LONG,
                     });
+                    setCurrentAttachment(prev => [
+                        ...prev,
+                        ...attachments.map((file: any) => {
+                            const extension = file.type ? `.${file.type.split('/')[1]}` : '';
+                            return {
+                                FileName: file.fileName ?? "",
+                                FileExtension: extension,
+                                FileBase64: file.base64 ?? "",
+                                FileSize: file.size ?? 0,
+                            };
+                        })
+                    ]);
+                    setAttachments([]);
                     setProcessData(false);
                 }else{
                     Snackbar.show({
@@ -532,7 +563,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                     "Comment": {
                         "ID": 0,
                         "SMQID": Number(key),
-                        "ParentCommentID": replyTo.pkkey ?? 0,
+                        "ParentCommentID": replyTo==null ? 0 : replyTo.pkkey,
                         "Comment": Comments
                     }
                 },
@@ -549,13 +580,127 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
             if(responseData.Acknowledge==0) {
                 setComments("");
                 setReplyTo(null);
-                fetchedLogCommentAPI();
+                await fetchedLogCommentAPI();
             }else{
                 Snackbar.show({
                     text: "Add comment failed ",
                     duration: Snackbar.LENGTH_LONG,
                 });
             }
+            
+        }catch (error: any) {
+            setProcessData(false);
+            Snackbar.show({
+                text: "Error: "+error,
+                duration: Snackbar.LENGTH_LONG,
+            });
+        }
+    }
+
+    const EditComment = async (
+        commentId: string, 
+        newText: string,
+        parentCommentID: string,
+    ) => {
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+        try {
+            const responseDetail = await axios.post(
+                "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                {
+                    "APIAction": "EditComment",
+                    "UserID": Number(getUserID),
+                    "Comment": {
+                        "ID": Number(commentId),
+                        "SMQID": Number(key),
+                        "ParentCommentID": Number(parentCommentID),
+                        "Comment": newText
+                    }
+                },
+                {
+                    auth: {
+                        username: getUserEmail,
+                        password: getUserPassword
+                    }
+                }
+            );
+
+            const responseData=responseDetail.data;
+
+            if(responseData.Acknowledge==0) {
+                await fetchedLogCommentAPI();
+            }else{
+                Snackbar.show({
+                    text: "Add comment failed ",
+                    duration: Snackbar.LENGTH_LONG,
+                });
+            }
+        }catch (error: any) {
+            setProcessData(false);
+            Snackbar.show({
+                text: "Error: "+error,
+                duration: Snackbar.LENGTH_LONG,
+            });
+        }
+    }
+
+    const DeleteComment = async (
+        CommentID: any,
+        Comment: any,
+    ) => {
+        const getUserID = await AsyncStorage.getItem('UserID') ?? "";
+        const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+        const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+        try {
+
+            Alert.alert(
+                "Delete Comment",
+                `Are you sure you want to delete comment? \n${Comment}`,
+                [
+                    {
+                        text: "Cancel",
+                        style: "cancel"
+                    },
+                    {
+                        text: "Yes",
+                        style: "destructive", // iOS red button
+                        onPress: async () => {
+                            const responseDetail = await axios.post(
+                                "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                                {
+                                    "APIAction": "DeleteComment",
+                                    "UserID": Number(getUserID),
+                                    "Comment": {
+                                        "ID": Number(CommentID),
+                                        "SMQID": Number(key),
+                                    }
+                                },
+                                {
+                                    auth: {
+                                        username: getUserEmail,
+                                        password: getUserPassword
+                                    }
+                                }
+                            );
+
+                            const responseData=responseDetail.data;
+            
+                            if(responseData.Acknowledge==0) {
+                                await fetchedLogCommentAPI();
+                            }else{
+                                Snackbar.show({
+                                    text: "Delete comment failed ",
+                                    duration: Snackbar.LENGTH_LONG,
+                                });
+                            }
+                        }
+                    }
+                ],
+                { cancelable: true }
+            );
             
         }catch (error: any) {
             setProcessData(false);
@@ -597,6 +742,150 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         }
     };
 
+    const processNextStep = async (
+        requestID: any, 
+        category: any,
+        movementType: any,
+        receiveFrom: any,
+        deliverTo: any,
+        purpose: any,
+        remark: any,
+        products: any,
+        attachments: any,
+        getStatus: any,
+    ) => {
+        setProcessData(true);
+        let emtpy = false;
+
+        if (products.length<=1 && products[0].id=="") {
+            Snackbar.show({
+                text: 'Please choose at least one product',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }else if (products.length<=1 && products[0].quantity=="") {
+            Snackbar.show({
+                text: 'Quantity can not be zero',
+                duration: Snackbar.LENGTH_LONG,
+            });
+            emtpy = true;
+            setProcessData(false);
+        }
+
+        if (!emtpy) {
+            const checkUserID = await AsyncStorage.getItem('UserID') ?? "";
+            const getUserEmail = await AsyncStorage.getItem('Email') ?? "";
+            const getUserPassword = await AsyncStorage.getItem('Password') ?? "";
+
+            try {
+                const formattedProducts = products.map((p: any) => ({
+                    DEARID: p.id,
+                    Notes: p.notes || "",
+                    Quantity: Number(p.quantity) || 0,
+                    UnitPrice: Number(p.unitPrice) || 0,
+                    Discount: Number(p.discount) || 0,
+                    Amount: (Number(p.quantity) || 0) * (Number(p.unitPrice) || 0)
+                }));
+
+                const documents = attachments.map((file: any) => {
+                    const extension = file.type ? `.${file.type.split('/')[1]}` : '';
+                    return {
+                        FileName: file.fileName ?? "",
+                        FileExtension: extension,
+                        FileBase64: file.base64 ?? "",
+                        FileSize: file.size ?? 0
+                    };
+                });
+
+                const countStage = WorkflowStatusMap[status] ?? 1; 
+                const workflowStage = countStage+1;
+                let WorkflowStatus = 0;
+
+                if(getStatus=="yes"){
+                    WorkflowStatus = workflowStage;
+                }else{
+                    WorkflowStatus = 0;
+                }
+
+                const request = {
+                    "APIAction": "UpdateStatus",
+                    "UserID": Number(checkUserID),
+                    "WorkflowStage": Number(workflowStage),
+                    "WorkflowStatus": Number(WorkflowStatus),
+                    "SMQ": {
+                        "Id": Number(key),
+                        "RequesterID": Number(requestID),
+                        "Category": Number(category),
+                        "MovementType": Number(movementType),
+                        "ReceiveFrom": receiveFrom,
+                        "DeliverTo": deliverTo,
+                        "Purpose": purpose,
+                        "PTRID": 0,
+                        "PMXID": 0,
+                        "SO": "",
+                        "RMA": "",
+                        "ReceiverSignature": "",
+                        "DelivererSignature": "",
+                        "Remark": remark,
+                        "SKIPValidator": false
+                    },
+                    "Products": formattedProducts,
+                    "Documents": documents
+                }
+
+                // console.log(request)
+
+                const response = await axios.post(
+                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                    request,
+                    {
+                        auth: {
+                            username: getUserEmail,
+                            password: getUserPassword
+                        }
+                    }
+                );
+
+                const responseData=response.data;
+
+                if(responseData.Acknowledge==0) {
+                    Alert.alert(
+                        getStatus=="yes" ? "Success" : "Reject SMQ",
+                        getStatus=="yes" ? "Approve SMQ Success." : "SMQ has been rejected",
+                        [
+                            {
+                                text: "OK",
+                                onPress: () => {
+                                    navigation.reset({
+                                        index: 0,
+                                        routes: [{ name: "MainStock" }],
+                                    });
+                                },
+                            },
+                        ],
+                        { cancelable: false }
+                    );
+                }else{
+                    Snackbar.show({
+                        text: responseData.Message,
+                        duration: Snackbar.LENGTH_LONG,
+                    });
+                    setProcessData(false);
+                }
+
+            } catch (error: any) {
+                Snackbar.show({
+                    text: 'Connect Server failed, Please try again.',
+                    duration: Snackbar.LENGTH_LONG,
+                });
+                console.log(error)
+                setProcessData(false);
+            }
+        }
+
+        setProcessData(false);
+    }
 
     const showWorkflowLogCard = ({ item }: { item: WorkflowLogProps }) => {
         return (
@@ -614,30 +903,24 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
     };
 
     const showCommentLogCard = ({ item }: { item: CommentLogProps }) => {
-        const renderRightActions = () => (
-            <View style={{ padding: replyTo==null ? 15 : 0 }}>
-                {/* <Text style={{ color: 'white', fontWeight: 'bold' }}>Reply</Text> */}
-            </View>
-        );
-
         return (
-            <Swipeable renderRightActions={renderRightActions} onSwipeableOpen={() => {
-                if(item.parentCommentID=="0"){
-                    setReplyTo(item);
-                }
-            }}>
-                <CommentLogCard 
-                    pkkey={item.pkkey}
-                    personName={item.personName}
-                    comment={item.comment}
-                    logOn={item.logOn} 
-                    SMQID={item.SMQID} 
-                    process={item.process} 
-                    status={item.status}  
-                    parentCommentID={item.parentCommentID}    
-                    onReplyPress={() => setReplyTo(item)}         
-                />
-            </Swipeable>
+            <CommentLogCard 
+                pkkey={item.pkkey}
+                personName={item.personName}
+                comment={item.comment}
+                logOn={item.logOn}
+                SMQID={item.SMQID}
+                process={item.process}
+                status={item.status}
+                parentCommentID={item.parentCommentID}
+                checkCommentEdit={checkCommentEdit}
+                onReplyPress={() => setReplyTo(item)}
+                onEditPress={() => {
+                    setComments(item.comment);
+                    setEditTarget(item);
+                }}
+                onDeletePress={() => DeleteComment(item.pkkey, item.comment)}             
+            />
         );
     };
 
@@ -714,6 +997,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Requester</Text>
                                     </View>
                                     <Dropdown
+                                        disable={disableEdit}
                                         style={AddItemScreenCSS.dropdown}
                                         placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                         selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
@@ -745,6 +1029,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Category</Text>
                                     </View>
                                     <Dropdown
+                                        disable={disableEdit}
                                         style={AddItemScreenCSS.dropdown}
                                         placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                         selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
@@ -777,6 +1062,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     </View>
                                     {movementTypeOptions.map(option => (
                                         <TouchableOpacity
+                                            disabled={disableEdit}
                                             key={option.pkkey}
                                             style={AddItemScreenCSS.RadioContainer}
                                             onPress={() => {
@@ -802,9 +1088,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Receive From</Text>
                                     </View>
                                     <Dropdown
-                                        style={[
-                                            AddItemScreenCSS.dropdown,
-                                        ]}
+                                        disable={disableEdit}
+                                        style={AddItemScreenCSS.dropdown}
                                         placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                         selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
                                         inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
@@ -834,9 +1119,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Deliver To</Text>
                                     </View>
                                     <Dropdown
-                                        style={[
-                                            AddItemScreenCSS.dropdown,
-                                        ]}
+                                        disable={disableEdit}
+                                        style={AddItemScreenCSS.dropdown}
                                         placeholderStyle={AddItemScreenCSS.placeholderStyle}
                                         selectedTextStyle={AddItemScreenCSS.selectedTextStyle}
                                         inputSearchStyle={AddItemScreenCSS.inputSearchStyle}
@@ -866,6 +1150,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Purpose</Text>
                                     </View>
                                     <TextInput
+                                        disabled={disableEdit}
                                         label=""
                                         mode="outlined"
                                         multiline
@@ -883,6 +1168,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <Text style={AddItemScreenCSS.TextInputFont}>Remark</Text>
                                     </View>
                                     <TextInput
+                                        disabled={disableEdit}
                                         label=""
                                         mode="outlined"
                                         multiline
@@ -925,20 +1211,42 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             borderBottomColor: "#ddd" 
                                         }}
                                         >
-                                        <Text style={{ flex: 1 }}>{doc.FileName || "Unnamed Document"}</Text>
+                                            <Text style={{ flex: 1 }}>{doc.FileName || "Unnamed Document"}</Text>
                                         
-                                        <TouchableOpacity 
-                                            onPress={() => handleDownload(doc)} 
-                                        >
-                                            <Ionicons name="download-outline" size={12} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => {
-                                            navigation.navigate('ViewAttachment', {
-                                                doc: doc, 
-                                            });
-                                        }} >
-                                            <Ionicons name="eye-outline" size={12} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
-                                        </TouchableOpacity>
+                                            <TouchableOpacity 
+                                                onPress={() => handleDownload(doc)} 
+                                            >
+                                                <Ionicons name="download-outline" size={18} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => {
+                                                navigation.navigate('ViewAttachment', {
+                                                    doc: doc, 
+                                                });
+                                            }} >
+                                                <Ionicons name="eye-outline" size={18} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => {
+                                                Alert.alert(
+                                                    `Delete ${doc.FileName}`,
+                                                    "Are you sure you want to delete it?",
+                                                    [
+                                                        {
+                                                            text: "Cancel",
+                                                            style: "cancel"
+                                                        },
+                                                        {
+                                                            text: "Delete",
+                                                            style: "destructive", // iOS red button
+                                                            onPress: () => {
+                                                                
+                                                            }
+                                                        }
+                                                    ],
+                                                    { cancelable: true }
+                                                );
+                                            }} >
+                                                <Ionicons name="trash-outline" size={18} color={COLORS.primaryGreyHex} style={{marginHorizontal: 10}} />
+                                            </TouchableOpacity>
                                         </View>
                                     ))}
 
@@ -990,13 +1298,38 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
                                             setShowSummary(true)
                                         }}>
-                                            <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {status=="New" ? "Validate": "Approve"} </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
-                                            Snackbar.show({
-                                                text: 'Reject SMQ',
-                                                duration: Snackbar.LENGTH_LONG,
-                                            });
+                                            Alert.alert(
+                                                "Confirm Reject",
+                                                "Are you sure you want to reject this SMQ?",
+                                                [
+                                                    {
+                                                        text: "Cancel",
+                                                        style: "cancel"
+                                                    },
+                                                    {
+                                                        text: "Reject",
+                                                        style: "destructive", // iOS red button
+                                                        onPress: () => {
+                                                            processNextStep(
+                                                                requester,
+                                                                category,
+                                                                movementType,
+                                                                receiveFrom,
+                                                                deliverTo,
+                                                                purpose,
+                                                                remark,
+                                                                products,
+                                                                attachments,
+                                                                "no",
+                                                            );
+                                                        }
+                                                    }
+                                                ],
+                                                { cancelable: true }
+                                            );
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
                                         </TouchableOpacity>
@@ -1013,6 +1346,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     <View key={index} style={{ marginTop: 20, borderBottomWidth: 1, borderColor: '#ccc', paddingBottom: 10 }}>
                                         <Text style={AddItemScreenCSS.TextInputFont}>Product {index + 1}</Text>
                                         <Dropdown
+                                            disable={disableEdit}
                                             style={[
                                                 AddItemScreenCSS.dropdown,
                                                 focusedDropdownIndex === index && { borderColor: COLORS.primaryDarkGreyHex }
@@ -1042,6 +1376,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <View style={{ flex: 1, marginTop: 10 }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>Quantity</Text>
                                             <TextInput
+                                            disabled={disableEdit}
                                             mode="outlined"
                                             keyboardType="numeric"
                                             value={item.quantity}
@@ -1059,6 +1394,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <View style={{ marginTop: 10 }}>
                                             <Text style={AddItemScreenCSS.TextInputFont}>Notes</Text>
                                             <TextInput
+                                                disabled={disableEdit}
                                                 mode="outlined"
                                                 multiline
                                                 numberOfLines={3}
@@ -1075,7 +1411,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         </View>
 
                                         {/* Optional: Remove product button */}
-                                        {(requester==currentUserID) && (products.length > 1) && (
+                                        {(!disableEdit) && (products.length > 1) && (
                                         <TouchableOpacity
                                             style={{ marginTop: 10 }}
                                             onPress={() => {
@@ -1089,7 +1425,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     </View>
                                 ))}
                                 
-                                {(requester==currentUserID) && (
+                                {(!disableEdit) && (
                                 <TouchableOpacity
                                     style={[AddItemScreenCSS.AddItemBtn]}
                                     onPress={() => {
@@ -1101,7 +1437,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 )}
 
                                 <View style={{ flexDirection: 'column', justifyContent: 'space-around', marginTop: 5 }}>
-                                { (requester==currentUserID) ? ( 
+                                { (!disableEdit) ? ( 
                                     <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
                                         EditSMQ(
                                             requester,
@@ -1126,13 +1462,38 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
                                             setShowSummary(true)
                                         }}>
-                                            <Text style={AddItemScreenCSS.ButtonText}> Approve </Text>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {status=="New" ? "Validate": "Approve"} </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
-                                            Snackbar.show({
-                                                text: 'Reject SMQ',
-                                                duration: Snackbar.LENGTH_LONG,
-                                            });
+                                            Alert.alert(
+                                                "Confirm Reject",
+                                                "Are you sure you want to reject this SMQ?",
+                                                [
+                                                    {
+                                                        text: "Cancel",
+                                                        style: "cancel"
+                                                    },
+                                                    {
+                                                        text: "Reject",
+                                                        style: "destructive", // iOS red button
+                                                        onPress: () => {
+                                                            processNextStep(
+                                                                requester,
+                                                                category,
+                                                                movementType,
+                                                                receiveFrom,
+                                                                deliverTo,
+                                                                purpose,
+                                                                remark,
+                                                                products,
+                                                                attachments,
+                                                                "no",
+                                                            );
+                                                        }
+                                                    }
+                                                ],
+                                                { cancelable: true }
+                                            );
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
                                         </TouchableOpacity>
@@ -1205,6 +1566,26 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             </View>
                                         </View>
                                         )}
+                                        {editTarget && (
+                                        <View style={AddItemScreenCSS.ReplyCommentCSS}>
+                                            <View style={{flexDirection: "row", justifyContent: "space-between"}}>
+                                                <Text style={{ fontSize: 12, fontWeight: 'bold' }}>
+                                                    Editing comment from {editTarget.personName}
+                                                </Text>
+                                                <TouchableOpacity onPress={() => {
+                                                    setEditTarget(null);
+                                                    setComments("");
+                                                }}>
+                                                    <Text style={{ fontSize: 10, color: 'red', marginTop: 4 }}>Cancel</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                            <View>
+                                                <Text style={{ fontSize: 12, color: '#555' }} numberOfLines={1}>
+                                                    {editTarget.comment}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        )}
                                         <TextInput
                                             label=""
                                             mode="outlined"
@@ -1218,8 +1599,21 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                         />
                                     </View>
 
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {marginTop: 10, width: "45%"}]} onPress={() => {AddComment(comments, replyTo)}}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Comment </Text>
+                                    <TouchableOpacity 
+                                    style={[AddItemScreenCSS.Button, { marginTop: 10 }]} 
+                                    onPress={() => {
+                                        if (editTarget) {
+                                            EditComment(editTarget.pkkey, comments, editTarget.parentCommentID); // 🔹 edit existing
+                                            setEditTarget(null);
+                                        } else {
+                                            AddComment(comments, replyTo);           // 🔹 new comment or reply
+                                            setReplyTo(null);
+                                        }
+                                        setComments(""); // clear text
+                                    }}>
+                                        <Text style={AddItemScreenCSS.ButtonText}>
+                                            {editTarget ? "Update Comment" : "Comment"}
+                                        </Text>
                                     </TouchableOpacity>
                                 </View>
                                 )}
@@ -1231,37 +1625,59 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 transparent={true}
                                 onRequestClose={() => setShowSummary(false)}
                             >
-                            <View style={{
-                                flex: 1,
-                                backgroundColor: 'rgba(0,0,0,0.5)',
-                                justifyContent: 'center',
-                                alignItems: 'center'
-                            }}>
-                                <View style={{
-                                    backgroundColor: COLORS.primaryWhiteHex,
-                                    borderRadius: 12,
-                                    padding: 20,
-                                    width: '90%',
-                                    maxHeight: '80%',
-                                }}>
+                            <View style={defaultCSS.ModalBackground}>
+                                <View style={defaultCSS.ModalContainer}>
                                     <ScrollView>
-                                        <Text style={{fontWeight: 'bold', fontSize: 18, marginBottom: 10}}>Summary</Text>
+                                        <Text style={defaultCSS.ModalMainTextTitle}>Summary</Text>
 
-                                        <Text>Requester: {requesterName}</Text>
-                                        <Text>Category: {categoryName}</Text>
-                                        <Text>Movement Type: {movementTypeName}</Text>
-                                        <Text>Receive From: {receiveFromName}</Text>
-                                        <Text>Deliver To: {deliverToName}</Text>
-                                        <Text>Purpose: {purpose}</Text>
-                                        <Text>Date Requested: {createdDate}</Text>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Requester: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{requesterName}</Text>
+                                        </View>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Category: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{categoryName}</Text>
+                                        </View>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Movement Type: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{movementTypeName}</Text>
+                                        </View>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Receive From: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{receiveFromName}</Text>
+                                        </View>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Deliver To: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{deliverToName}</Text>
+                                        </View>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Purpose: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{purpose}</Text>
+                                        </View>
+                                        <View style={defaultCSS.ModalFontContainer}>
+                                            <Text style={defaultCSS.ModalTextTitle}>Date Requested: </Text> 
+                                            <Text style={defaultCSS.ModalTextTitle2}>{ChangeDateTime(createdDate)}</Text>
+                                        </View>
 
-                                        <Text style={{marginTop: 10, fontWeight: 'bold'}}>Products:</Text>
+                                        <Text style={[defaultCSS.ModalTextTitle, {marginTop: 10,}]}>Products:</Text>
                                         {products.map((p, i) => (
-                                        <View key={i} style={{marginVertical: 5, padding: 8, borderWidth: 1, borderColor: '#ccc', borderRadius: 6}}>
-                                            <Text>Product {i+1}</Text>
-                                            <Text>Name: {p.name}</Text>
-                                            <Text>Quantity: {p.quantity}</Text>
-                                            <Text>Notes: {p.notes}</Text>
+                                        <View key={i} style={defaultCSS.ModalProductContainer}>
+                                            {/* <View style={defaultCSS.ModalFontContainer}>
+                                                <Text style={defaultCSS.ModalTextTitle}>Product: </Text> 
+                                                <Text style={defaultCSS.ModalTextTitle2}>{i+1}</Text>
+                                            </View> */}
+                                            <View style={defaultCSS.ModalFontContainer}>
+                                                <Text style={defaultCSS.ModalTextTitle}>Name: </Text> 
+                                                <Text style={defaultCSS.ModalTextTitle2}>{p.name}</Text>
+                                            </View>
+                                            <View style={defaultCSS.ModalFontContainer}>
+                                                <Text style={defaultCSS.ModalTextTitle}>Quantity: </Text> 
+                                                <Text style={defaultCSS.ModalTextTitle2}>{p.quantity}</Text>
+                                            </View>
+                                            <View style={defaultCSS.ModalFontContainer}>
+                                                <Text style={defaultCSS.ModalTextTitle}>Notes: </Text> 
+                                                <Text style={defaultCSS.ModalTextTitle2}>{p.notes}</Text>
+                                            </View>
                                         </View>
                                         ))}
                                     </ScrollView>
@@ -1274,11 +1690,22 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryGreenHex, width:"45%"}]}
                                             onPress={() => {
                                                 setShowSummary(false);
-                                                Snackbar.show({
-                                                text: 'Final Approve Sent!',
-                                                duration: Snackbar.LENGTH_LONG,
-                                                });
-                                                // Here you could call your API to submit final approval
+                                                processNextStep(
+                                                    requester,
+                                                    category,
+                                                    movementType,
+                                                    receiveFrom,
+                                                    deliverTo,
+                                                    purpose,
+                                                    remark,
+                                                    products,
+                                                    attachments,
+                                                    "yes",
+                                                );
+                                                // Snackbar.show({
+                                                //     text: 'Final Approve Sent!',
+                                                //     duration: Snackbar.LENGTH_LONG,
+                                                // });
                                             }}
                                         >
                                             <Text style={AddItemScreenCSS.ButtonText}>Confirm</Text>
