@@ -141,7 +141,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const response = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                `${IPAddress}/NEXA/api/StockMovement/Get`,
                 {
                     "APIAction": "GetPreloadData"
                 },
@@ -220,7 +220,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const response = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                `${IPAddress}/NEXA/api/StockMovement/Get`,
                 {
                     "APIAction": "GetSMQById",
                     "UserID": getUserID,
@@ -303,7 +303,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const responseDetail = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                `${IPAddress}/NEXA/api/StockMovement/Get`,
                 {
                     "APIAction": "GetSMQInfo",
                     "UserID": getUserID,
@@ -487,7 +487,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 }
 
                 const response = await axios.post(
-                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                    `${IPAddress}/NEXA/api/StockMovement/Post`,
                     request,
                     {
                         auth: {
@@ -550,7 +550,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
         try {
 
             const responseDetail = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                `${IPAddress}/NEXA/api/StockMovement/Post`,
                 {
                     "APIAction": "AddComment",
                     "UserID": Number(getUserID),
@@ -602,7 +602,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const responseDetail = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                `${IPAddress}/NEXA/api/StockMovement/Post`,
                 {
                     "APIAction": "EditComment",
                     "UserID": Number(getUserID),
@@ -663,7 +663,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                         style: "destructive", // iOS red button
                         onPress: async () => {
                             const responseDetail = await axios.post(
-                                "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                                `${IPAddress}/NEXA/api/StockMovement/Post`,
                                 {
                                     "APIAction": "DeleteComment",
                                     "UserID": Number(getUserID),
@@ -796,6 +796,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 let workflowStage = countStage+1;
                 let WorkflowStatus = 0;
 
+                console.log("getStatus: "+getStatus)
+
                 if(getStatus=="yes"){
                     WorkflowStatus = workflowStage;
                 }else if(getStatus=="close"){
@@ -809,6 +811,8 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 }else{
                     WorkflowStatus = 0;
                 }
+
+                console.log("workflowStage: "+workflowStage+" WorkflowStatus: "+WorkflowStatus)
 
                 const request = {
                     "APIAction": "UpdateStatus",
@@ -839,7 +843,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                 console.log(request)
 
                 const response = await axios.post(
-                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                    `${IPAddress}/NEXA/api/StockMovement/Post`,
                     request,
                     {
                         auth: {

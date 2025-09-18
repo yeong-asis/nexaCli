@@ -2,7 +2,7 @@ import { Image, Text, View } from "react-native";
 import { IconListPicture } from "../themes/CSS";
 import { COLORS } from "../themes/theme";
 
-export const IPAddress = "http://192.168.0.90:7149";
+export const IPAddress = "http://192.168.168.150";
 
 export const TaskMenuItems = [
     { title: "Pending Task", key: "pending" },

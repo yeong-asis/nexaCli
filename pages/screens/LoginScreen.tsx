@@ -65,7 +65,7 @@ const LoginScreen = ({navigation}: any) => {
 
                 // POST request
                 const response = await axios.post(
-                    "http://192.168.168.150/NEXA/api/Authentication/post",
+                    `${IPAddress}/NEXA/api/Authentication/post`,
                     request,
                     {
                         headers: { "Content-Type": "application/json" },

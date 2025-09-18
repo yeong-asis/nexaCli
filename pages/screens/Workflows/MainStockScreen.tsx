@@ -10,7 +10,6 @@ import LoadingAnimation from '../../functions/LoadingAnimation';
 import EmptyListContainer from '../../functions/EmptyListContainer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import StockListCard from '../../../objects/Cards/StockListCard';
-import { sampleWorkflowData } from '../../../objects/SampleJsonData';
 import Snackbar from 'react-native-snackbar';
 
 const StockListScreen = ({ navigation }: { navigation: any }) => {
@@ -19,7 +18,7 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
     const [fetchedData, setFetchedData] = useState<WorkflowProps[]>([]);
     const [itemFinish, setItemFinish] = useState(false);
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [itemPerPage, setItemPerPage] = useState<number>(5);
+    const [itemPerPage, setItemPerPage] = useState<number>(10);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
@@ -46,7 +45,7 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const response = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                `${IPAddress}/NEXA/api/StockMovement/Get`,
                 request,
                 {
                     auth: {

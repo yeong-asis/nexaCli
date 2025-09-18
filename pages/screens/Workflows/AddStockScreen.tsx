@@ -75,7 +75,6 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                 results.map(async (file) => {
                     let base64Data = null;
 
-                    // Only read base64 for non-video files (videos can be huge!)
                     if (!file.type?.startsWith('video/')) {
                         base64Data = await RNFS.readFile(file.uri, 'base64');
                     }
@@ -110,7 +109,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
 
         try {
             const response = await axios.post(
-                "http://192.168.168.150/NEXA/api/StockMovement/Get",
+                `${IPAddress}/NEXA/api/StockMovement/Get`,
                 {
                     "APIAction": "GetPreloadData"
                 },
@@ -285,7 +284,7 @@ const AddStockScreen = ({ navigation }: { navigation: any }) => {
                 }
 
                 const response = await axios.post(
-                    "http://192.168.168.150/NEXA/api/StockMovement/Post",
+                    `${IPAddress}/NEXA/api/StockMovement/Post`,
                     request,
                     {
                         auth: {
