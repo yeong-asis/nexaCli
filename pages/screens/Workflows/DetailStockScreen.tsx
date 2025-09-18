@@ -1519,9 +1519,9 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                 </TouchableOpacity>
                                 )}
 
-                                <View style={{ flexDirection: 'column', justifyContent: 'space-around', marginTop: 5 }}>
-                                { (!disableEdit) ? ( 
-                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => { 
+                                <View style={{ flexDirection: 'column', justifyContent: 'space-around', marginTop: 10 }}>
+                                { (requester==currentUserID && (status=="New" || status=="Validated" || status=="Rejected")) ? ( 
+                                    <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryLightGreyHex}]} onPress={() => {
                                         EditSMQ(
                                             requester,
                                             category,
@@ -1532,57 +1532,87 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             remark,
                                             products,
                                             attachments,
-                                        ) 
+                                        )
                                     }}>
-                                        <Text style={AddItemScreenCSS.ButtonText}> Edit </Text>
+                                        <Text style={AddItemScreenCSS.ButtonText}> {"Edit"} </Text>
                                     </TouchableOpacity>
                                 ) : ( 
                                     <></> 
                                 )}
 
-                                { (isValidators==true) ? (
+                                { (isValidators==true) && (
                                     <>
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
+                                            setModalAction("approve"); 
                                             setShowSummary(true)
                                         }}>
-                                            <Text style={AddItemScreenCSS.ButtonText}> {status=="New" ? "Validate": "Approve"} </Text>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {WorkflowNextStatusMap[status]} </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
-                                            Alert.alert(
-                                                "Confirm Reject",
-                                                "Are you sure you want to reject this SMQ?",
-                                                [
-                                                    {
-                                                        text: "Cancel",
-                                                        style: "cancel"
-                                                    },
-                                                    {
-                                                        text: "Reject",
-                                                        style: "destructive", // iOS red button
-                                                        onPress: () => {
-                                                            processNextStep(
-                                                                requester,
-                                                                category,
-                                                                movementType,
-                                                                receiveFrom,
-                                                                deliverTo,
-                                                                purpose,
-                                                                remark,
-                                                                products,
-                                                                attachments,
-                                                                "no",
-                                                            );
-                                                        }
-                                                    }
-                                                ],
-                                                { cancelable: true }
-                                            );
+                                            setModalAction("reject"); 
+                                            setShowSummary(true)
                                         }}>
                                             <Text style={AddItemScreenCSS.ButtonText}> Reject </Text>
                                         </TouchableOpacity>
                                     </>
-                                ) : (
-                                    <></>
+                                )}
+
+                                { (requester==currentUserID && status=="Completed") && (
+                                    <>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
+                                            processNextStep(
+                                                requester,
+                                                category,
+                                                movementType,
+                                                receiveFrom,
+                                                deliverTo,
+                                                purpose,
+                                                remark,
+                                                products,
+                                                attachments,
+                                                "close",
+                                            );
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {"Close"} </Text>
+                                        </TouchableOpacity>
+                                    </>
+                                )}
+
+                                { (requester==currentUserID && status=="Rejected") && (
+                                    <>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: HEADERBACKGROUNDCOLORCODE,}]} onPress={() => { 
+                                            processNextStep(
+                                                requester,
+                                                category,
+                                                movementType,
+                                                receiveFrom,
+                                                deliverTo,
+                                                purpose,
+                                                remark,
+                                                products,
+                                                attachments,
+                                                "revise",
+                                            );
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {"Revise"} </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={[AddItemScreenCSS.Button, {backgroundColor: COLORS.primaryRedHex,}]} onPress={() => { 
+                                            processNextStep(
+                                                requester,
+                                                category,
+                                                movementType,
+                                                receiveFrom,
+                                                deliverTo,
+                                                purpose,
+                                                remark,
+                                                products,
+                                                attachments,
+                                                "cancel",
+                                            );
+                                        }}>
+                                            <Text style={AddItemScreenCSS.ButtonText}> {"Cancel"} </Text>
+                                        </TouchableOpacity>
+                                    </>
                                 )}
                                 </View>
                                 

@@ -59,7 +59,9 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
             const responseData=response.data;
 
             if(responseData.Acknowledge==0) {
-                const formattedMessages = responseData.SMQList.map((item: any) => {
+                const formattedMessages = responseData.SMQList
+                .filter((item: any) => item.Status !== "Cancelled" && item.Status !== "Closed")
+                .map((item: any) => {
                     return {
                         pkkey: item.Id,
                         code: item.SMQCode,
