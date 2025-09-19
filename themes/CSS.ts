@@ -216,6 +216,22 @@ export const defaultCSS = StyleSheet.create({
         borderColor: '#ccc', 
         borderRadius: 6
     },
+    SearchContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: COLORS.primaryWhiteHex,
+        borderWidth: 1,
+        paddingHorizontal: 12,
+        borderColor: "#CCC",
+        width: "100%",
+    },
+    SearchTextInput: {
+        flex: 1, 
+        fontWeight: 'bold', 
+        fontSize: 14, 
+        fontFamily: FONTFAMILY.poppins_medium,
+        height: 50,
+    },
 });
 
 export const LoginManagementCSS = StyleSheet.create({
@@ -252,10 +268,10 @@ export const LoginManagementCSS = StyleSheet.create({
     },
     TextInputDesign: {
         backgroundColor: COLORS.primaryWhiteHex, 
-        borderWidth: 0.4,
         width: "80%",
         height: 50,
         alignSelf: "center",
+        borderColor: "#CCC"
     },
     TextInputFont: {
         color: COLORS.primaryDarkGreyHex,

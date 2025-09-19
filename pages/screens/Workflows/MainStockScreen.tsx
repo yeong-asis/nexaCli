@@ -1,16 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import { Dimensions, FlatList, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from 'react';
+import { TextInput, Dimensions, FlatList, Keyboard, KeyboardAvoidingView, Platform, RefreshControl, StatusBar, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { IPAddress, WorkflowProps } from '../../../objects/objects';
 import { ButtonCSS, defaultCSS } from '../../../themes/CSS';
-import { BACKGROUNDCOLORCODE, COLORS } from '../../../themes/theme';
+import { BACKGROUNDCOLORCODE, COLORS, SetBorderWidth } from '../../../themes/theme';
 import HeaderBar from '../../functions/HeaderBar';
 import LoadingAnimation from '../../functions/LoadingAnimation';
 import EmptyListContainer from '../../functions/EmptyListContainer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import StockListCard from '../../../objects/Cards/StockListCard';
 import Snackbar from 'react-native-snackbar';
+// import { TextInput } from 'react-native-paper';
 
 const StockListScreen = ({ navigation }: { navigation: any }) => {
     const [processData, setProcessData] = useState(false);
@@ -20,6 +21,10 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [itemPerPage, setItemPerPage] = useState<number>(10);
     const [refreshing, setRefreshing] = useState(false);
+
+    const [searchText, setSearchText] = useState("");
+    const searchTextRef = useRef("");
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
     useEffect(() => {
         (async () => {
@@ -137,6 +142,12 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
         await fetchedDataAPI(getNextPage, itemPerPage);
     }
 
+    const toggleSelection = (id: string) => {
+        setSelectedItems((prev) =>
+            prev.includes(id) ? prev.filter((pk) => pk !== id) : [...prev, id]
+        );
+    };
+
     const showWorkflowCard = ({ item }: { item: WorkflowProps }) => {
         return (
             <TouchableOpacity onPress={() => {
@@ -164,60 +175,83 @@ const StockListScreen = ({ navigation }: { navigation: any }) => {
                     categoryID={item.categoryID} 
                     categoryName={item.categoryName} 
                     NEXTPIC={item.NEXTPIC} 
-                    SKIPValidator={item.SKIPValidator}             
+                    SKIPValidator={item.SKIPValidator}  
+                    isSelected={selectedItems.includes(String(item.pkkey))}
+                    onToggleSelect={() => toggleSelection(String(item.pkkey))}           
                 />
             </TouchableOpacity>
         );
     };
 
     return (
-        <View style={defaultCSS.ScreenContainer}>
-            <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
-            
-            <View style={{ flex: 1 }}>
-                <HeaderBar title={`${"Stock Movement"}: `} checkBackBttn={true} />
-                {/* <View style={defaultCSS.LineContainer}></View> */}
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <View style={defaultCSS.ScreenContainer}>
+                <StatusBar backgroundColor={BACKGROUNDCOLORCODE} />
+                
+                <View style={{ flex: 1 }}>
+                    <HeaderBar title={`${"Stock Movement"}: `} checkBackBttn={true} />
 
-                {processData ? (
-                    <View style={{ alignSelf: "center", flex: 0.92, }}>
-                        <LoadingAnimation />
+                    <View style={defaultCSS.SearchContainer}>
+                        <TextInput
+                            placeholder="Search Stock Movement...."
+                            value={searchText}
+                            onChangeText={text => {
+                                setSearchText(text);
+                            }}
+                            // defaultValue={searchTextRef.current}
+                            // onChangeText={(text) => {
+                            //     searchTextRef.current = text;
+                            // }}
+                            placeholderTextColor={COLORS.secondaryLightGreyHex}
+                            style={defaultCSS.SearchTextInput}
+                        />
+                        {searchText.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchText("")}>
+                            <Ionicons name="close-circle" size={20} color={COLORS.primaryGreyHex} />
+                        </TouchableOpacity>
+                        )}
                     </View>
-                ) : (
-                    ( fetchedData.length>0 ) ? (
-                        <View style={{flex: 1}}>
-                            <FlatList
-                                data={fetchedData}
-                                renderItem={showWorkflowCard}
-                                removeClippedSubviews={false}
-                                onEndReached={() => {loadMore(currentPage)}}
-                                refreshControl={<RefreshControl
-                                    refreshing={refreshing}
-                                    onRefresh={onRefresh}
-                                />}
-                                ListFooterComponent={() => itemFinish && (
-                                    <View style={styles.CardContainer}>
-                                        <View>
-                                            <Text style={[styles.TextTitle, { color: COLORS.secondaryLightGreyHex, fontSize: 16 }]}>No More Data</Text>
-                                        </View>
-                                    </View>
-                                )}
-                            />
+
+                    {processData ? (
+                        <View style={{ alignSelf: "center", flex: 0.92, }}>
+                            <LoadingAnimation />
                         </View>
                     ) : (
-                        <View style={{alignItems:"center", justifyContent: "center", flex: 0.9,}}>
-                            <EmptyListContainer title={'No Stock Movement now.'} />
-                        </View>
-                    )
-                )}
-                <TouchableOpacity
-                    style={ButtonCSS.plusButton}
-                    onPress={onAddButtonPress}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons name="add" size={48} color={COLORS.primaryWhiteHex} />
-                </TouchableOpacity>
+                        ( fetchedData.length>0 ) ? (
+                            <View style={{flex: 1}}>
+                                <FlatList
+                                    data={fetchedData}
+                                    renderItem={showWorkflowCard}
+                                    onEndReached={() => {loadMore(currentPage)}}
+                                    refreshControl={<RefreshControl
+                                        refreshing={refreshing}
+                                        onRefresh={onRefresh}
+                                    />}
+                                    ListFooterComponent={() => itemFinish && (
+                                        <View style={styles.CardContainer}>
+                                            <View>
+                                                <Text style={[styles.TextTitle, { color: COLORS.secondaryLightGreyHex, fontSize: 16 }]}>No More Data</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                />
+                            </View>
+                        ) : (
+                            <View style={{alignItems:"center", justifyContent: "center", flex: 0.9,}}>
+                                <EmptyListContainer title={'No Stock Movement now.'} />
+                            </View>
+                        )
+                    )}
+                    <TouchableOpacity
+                        style={ButtonCSS.plusButton}
+                        onPress={onAddButtonPress}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="add" size={48} color={COLORS.primaryWhiteHex} />
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 

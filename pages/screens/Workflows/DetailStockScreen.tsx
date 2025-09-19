@@ -1222,6 +1222,10 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     )}
 
                                     {currentAttachment.map((doc, idx) => (
+                                    <>
+                                        <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Requester Attachments</Text>
+                                        </View>
                                         <View 
                                         key={doc.Id ?? idx} 
                                         style={{ 
@@ -1306,6 +1310,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                             </TouchableOpacity>
                                             )}
                                         </View>
+                                    </>
                                     ))}
 
 
@@ -1413,9 +1418,9 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                                 numberOfLines={3}
                                                 value={item.notes}
                                                 onChangeText={(text) => {
-                                                const updated = [...products];
-                                                updated[index].notes = text;
-                                                setProducts(updated);
+                                                    const updated = [...products];
+                                                    updated[index].notes = text;
+                                                    setProducts(updated);
                                                 }}
                                                 placeholder="Enter any notes"
                                                 style={AddItemScreenCSS.TextArea}
@@ -1482,7 +1487,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     <>
                                     <View style={{ marginTop: 10,}}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}>History</Text>
+                                            <Text style={AddItemScreenCSS.TextInputFont}>Activity Log</Text>
                                         </View>
                                         <FlatList 
                                             nestedScrollEnabled={false}
@@ -1501,7 +1506,7 @@ const DetailStockScreen = ({ navigation }: { navigation: any }) => {
                                     <>
                                     <View style={{ marginTop: 10}}>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline', marginVertical: 5 }}>
-                                            <Text style={AddItemScreenCSS.TextInputFont}> View Comment</Text>
+                                            <Text style={AddItemScreenCSS.TextInputFont}> Comments</Text>
                                         </View>
                                         <FlatList 
                                             nestedScrollEnabled={false}

@@ -141,7 +141,9 @@ export interface WorkflowProps {
     categoryName: string,
     NEXTPIC: string,
     createdDate: string,
-    SKIPValidator: string
+    SKIPValidator: string,
+    isSelected?: boolean;
+    onToggleSelect?: () => void;
 }
 
 export interface ProductProps {

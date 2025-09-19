@@ -1,9 +1,9 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { statusContainerColors, statusTextColors, WorkflowProps } from '../objects';
 import { COLORS, HEADERBACKGROUNDCOLORCODE } from '../../themes/theme';
 import { ChangeDateTime } from '../../pages/functions/StandardFunction';
-
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const StockListCard: React.FC<WorkflowProps> = ({
     pkkey,
@@ -12,23 +12,28 @@ const StockListCard: React.FC<WorkflowProps> = ({
     RequesterName,
     categoryName,
     createdDate,
+    isSelected = false,
+    onToggleSelect,
 }) => {
     return (
         <View style={[styles.CardContainer, {}]}>
-            <View style={{flexDirection: "row"}}>
-                <View style={{flexDirection: "column", width: "60%",}}>
+            <View style={{flexDirection: "row", alignItems: "center"}}>
+                <TouchableOpacity onPress={onToggleSelect} style={{ marginRight: 12 }}>
+                    <Ionicons
+                        name={isSelected ? "checkbox" : "square-outline"}
+                        size={26}
+                        color={COLORS.primaryDarkGreyHex}
+                    />
+                </TouchableOpacity>
+                
+                <View style={{flexDirection: "column", width: "55%",}}>
                     <Text style={[styles.TextTitle, {width: "100%",}]}>{code}</Text>
                     <Text style={[styles.TextDescription, {}]}>{RequesterName}</Text>
                     <Text style={[styles.TextDescription2, {}]}>{categoryName}</Text>
                     <Text style={[styles.TextDescription2, {}]}>{ChangeDateTime(createdDate)}</Text>
                 </View>
-                <View style={{width: "40%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
-                    {/* <Text style={[styles.TextStatus2, {
-                        width: 120,
-                    }]}>
-                        {status}
-                    </Text> */}
-
+                
+                <View style={{width: "38%", alignSelf: "flex-start", marginTop: 5, paddingRight: 5}}>
                     <View style={{flex: 1}}></View>
                     <Text style={[styles.TextStatus, {
                         width: 110,
